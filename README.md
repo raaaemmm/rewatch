@@ -82,37 +82,22 @@ To make it reachable from this machine only, change the port mapping to
 
 ## Sharing it with a Cloudflare tunnel
 
-### Quick start (demo / temporary)
-
 ```bash
 cloudflared tunnel --url http://localhost:8000
 # or: python start_server.py --tunnel
 ```
 
-This prints a `https://...trycloudflare.com` address you can share instantly. **Perfect for quick tests and demos.**
+This prints a `https://...trycloudflare.com` address.
 
-### Production (named tunnel + Cloudflare Access)
-
-For anything beyond a quick test, set up a named tunnel with **Cloudflare Access** (the free tier supports email one-time PINs):
-
-```bash
-cloudflared tunnel login
-cloudflared tunnel create rewatch
-cloudflared tunnel route dns rewatch yourdomain.com
-cloudflared tunnel config
-# add:
-# - hostname: yourdomain.com
-#   service: http://localhost:8000
-cloudflared tunnel run rewatch
-```
-
-Then enable Cloudflare Access to gate access by email.
-
-### Important notes
-
-- **Demo URLs are public.** Anyone with the `trycloudflare.com` address can use your instance. For production, use Access.
-- Because the app also listens on your LAN, `REWATCH_TRUST_PROXY_HEADERS` is `false` by default, so all tunnel visitors share one rate-limit bucket. If you bind to `127.0.0.1` and reach the app only through cloudflared, set it to `true` so the limiter uses `CF-Connecting-IP`.
-- Cloudflare's free proxy closes idle connections at about 100 s. The progress stream sends a keep-alive every ~15 s, and the UI falls back to polling if it drops.
+- **Anyone with that address can use your instance.** For anything beyond a quick
+  test, use a named tunnel with **Cloudflare Access** (the free tier supports email
+  one-time PINs) instead of relying on the URL being secret.
+- Because the app also listens on your LAN, `REWATCH_TRUST_PROXY_HEADERS` is
+  `false` by default, so all tunnel visitors share one rate-limit bucket. If you
+  bind to `127.0.0.1` and reach the app only through cloudflared, set it to `true`
+  so the limiter uses `CF-Connecting-IP`.
+- Cloudflare's free proxy closes idle connections at about 100 s. The progress
+  stream sends a keep-alive every ~15 s, and the UI falls back to polling if it drops.
 
 ## Configuration
 
@@ -121,17 +106,31 @@ shell (see [`app/config.py`](app/config.py) for the full list).
 
 | Variable | Default | Description |
 |---|---|---|
-| `REWATCH_SECRET_KEY` | random per start | Signs job tokens. Set it so open tabs survive a restart. |
+| `REWATCH_SECRET_KEY` | random per start | Signs job tokens. Set it so open tabs survive a restart. Docker refuses to start without it. |
+| `REWATCH_PUBLIC_URL` | *(from the request)* | Public address, e.g. `https://rewatch.example.com`. Used for the canonical link, share previews (Open Graph) and `sitemap.xml`. |
+| `REWATCH_TRUST_PROXY_HEADERS` | `false` | Trust `CF-Connecting-IP` / `X-Forwarded-For` / `X-Forwarded-Proto`. |
 | `REWATCH_MAX_CONCURRENT_DOWNLOADS` | `2` | Parallel downloads. |
 | `REWATCH_MAX_QUEUED_JOBS` | `50` | Reject new jobs beyond this (HTTP 429). |
-| `REWATCH_FILE_TTL_SECONDS` | `1800` | Delete finished files and jobs after this long. |
+| `REWATCH_MAX_PLAYLIST_ITEMS` | `50` | Most videos taken from one playlist link. |
+| `REWATCH_MAX_URLS_PER_BATCH` | `25` | Most links accepted at once (shown in the UI). |
 | `REWATCH_MAX_DURATION_SECONDS` | `14400` | Reject media longer than this (0 = off). |
 | `REWATCH_MAX_FILESIZE_MB` | `2048` | Reject files larger than this (0 = off). |
 | `REWATCH_RATE_LIMIT_PER_MINUTE` | `30` | Per-IP request limit (0 = off). `docker-compose.yml` sets 120. |
-| `REWATCH_TRUST_PROXY_HEADERS` | `false` | Trust `CF-Connecting-IP` / `X-Forwarded-For`. |
-| `REWATCH_ALLOWED_HOSTS` | *(unset)* | Restrict to certain sites, e.g. `youtube.com,youtu.be`. |
+| `REWATCH_INFO_TIMEOUT_SECONDS` | `60` | Give up reading a link's details after this long. |
+| `REWATCH_DOWNLOAD_TIMEOUT_SECONDS` | `1800` | Give up on a download after this long. |
+| `REWATCH_FILE_TTL_SECONDS` | `1800` | Delete finished files and jobs after this long. |
+| `REWATCH_CLEANUP_INTERVAL_SECONDS` | `60` | How often the cleanup runs. |
+| `REWATCH_DOWNLOAD_DIR` | `./downloads` | Where files are written. The Docker image sets `/app/downloads`. |
+| `REWATCH_STATIC_DIR` | `./static` | Folder with the web page. Leave it unless you moved it. |
+| `REWATCH_ALLOWED_HOSTS` | *(unset)* | Restrict to certain sites, comma-separated, e.g. `youtube.com,youtu.be`. |
 | `REWATCH_ALLOW_PRIVATE_URLS` | `false` | Allow URLs that resolve to private/loopback addresses. Leave off. |
+| `REWATCH_PREFER_COMPATIBLE_CODECS` | `true` | Prefer H.264 + AAC so MP4s play everywhere. |
+| `REWATCH_AUDIO_BITRATE_KBPS` | `192` | Default MP3 quality. |
 | `REWATCH_DENO_PATH` | *(auto)* | Full path to Deno if it is installed somewhere unusual. |
+
+[`.env.example`](.env.example) lists all of these with comments. With Docker, the
+variables above (except the download and static folders) are passed through from `.env`
+by `docker-compose.yml`.
 
 Jobs are held in memory, so Rewatch runs a **single worker**. Do not start it with
 `--workers` greater than 1.
@@ -140,7 +139,7 @@ Jobs are held in memory, so Rewatch runs a **single worker**. Do not start it wi
 
 | Problem | Fix |
 |---|---|
-| Only one or two low qualities show for YouTube | Install **Deno** and make sure `yt-dlp[default]` is installed (`pip install -U "yt-dlp[default]"`). The card shows a warning when this is the ca[...] |
+| Only one or two low qualities show for YouTube | Install **Deno** and make sure `yt-dlp[default]` is installed (`pip install -U "yt-dlp[default]"`). The card shows a warning when this is the cause. |
 | "Unsupported URL" or extraction errors on a site that used to work | Update yt-dlp: `pip install -U "yt-dlp[default]"`. In Docker, rebuild with `docker compose build --no-cache`. |
 | "Too many requests" (429) | You hit the per-IP rate limit. Wait a minute or raise `REWATCH_RATE_LIMIT_PER_MINUTE`. |
 | "Job not found" after restarting the server | Job tokens reset when the secret key is random. Set `REWATCH_SECRET_KEY`. |

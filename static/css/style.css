@@ -1218,3 +1218,13 @@ a,
     justify-content: safe center;
   }
 }
+
+
+/* ---- brand mark: the app icon ---- */
+.mark-icon {
+  display: block;
+  flex: none;
+  width: 1.3em;
+  height: 1.3em;
+  border-radius: 28%;
+}

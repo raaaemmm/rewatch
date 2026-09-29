@@ -9,13 +9,27 @@ services:
     environment:
       # required: copy .env.example to .env and set a random value
       - REWATCH_SECRET_KEY=${REWATCH_SECRET_KEY:?set REWATCH_SECRET_KEY in .env}
-      # off because LAN clients can reach the app directly and could spoof the header;
-      # set to true only if the port is bound to 127.0.0.1 and reached via cloudflared
-      - REWATCH_TRUST_PROXY_HEADERS=false
+      # Everything below can be changed from .env (see .env.example); the value after :- is the default.
+      # Off because LAN clients can reach the app directly and could spoof the header;
+      # set to true only if the port is bound to 127.0.0.1 and reached via cloudflared.
+      - REWATCH_TRUST_PROXY_HEADERS=${REWATCH_TRUST_PROXY_HEADERS:-false}
+      - REWATCH_PUBLIC_URL=${REWATCH_PUBLIC_URL:-}
       # high enough for "Download all" on a 25-link batch (~50 requests in a burst)
-      - REWATCH_RATE_LIMIT_PER_MINUTE=120
-      - REWATCH_MAX_CONCURRENT_DOWNLOADS=2
-      - REWATCH_FILE_TTL_SECONDS=1800
+      - REWATCH_RATE_LIMIT_PER_MINUTE=${REWATCH_RATE_LIMIT_PER_MINUTE:-120}
+      - REWATCH_MAX_CONCURRENT_DOWNLOADS=${REWATCH_MAX_CONCURRENT_DOWNLOADS:-2}
+      - REWATCH_MAX_QUEUED_JOBS=${REWATCH_MAX_QUEUED_JOBS:-50}
+      - REWATCH_MAX_PLAYLIST_ITEMS=${REWATCH_MAX_PLAYLIST_ITEMS:-50}
+      - REWATCH_MAX_URLS_PER_BATCH=${REWATCH_MAX_URLS_PER_BATCH:-25}
+      - REWATCH_MAX_DURATION_SECONDS=${REWATCH_MAX_DURATION_SECONDS:-14400}
+      - REWATCH_MAX_FILESIZE_MB=${REWATCH_MAX_FILESIZE_MB:-2048}
+      - REWATCH_INFO_TIMEOUT_SECONDS=${REWATCH_INFO_TIMEOUT_SECONDS:-60}
+      - REWATCH_DOWNLOAD_TIMEOUT_SECONDS=${REWATCH_DOWNLOAD_TIMEOUT_SECONDS:-1800}
+      - REWATCH_FILE_TTL_SECONDS=${REWATCH_FILE_TTL_SECONDS:-1800}
+      - REWATCH_CLEANUP_INTERVAL_SECONDS=${REWATCH_CLEANUP_INTERVAL_SECONDS:-60}
+      - REWATCH_ALLOWED_HOSTS=${REWATCH_ALLOWED_HOSTS:-}
+      - REWATCH_ALLOW_PRIVATE_URLS=${REWATCH_ALLOW_PRIVATE_URLS:-false}
+      - REWATCH_PREFER_COMPATIBLE_CODECS=${REWATCH_PREFER_COMPATIBLE_CODECS:-true}
+      - REWATCH_AUDIO_BITRATE_KBPS=${REWATCH_AUDIO_BITRATE_KBPS:-192}
     volumes:
       - downloads:/app/downloads
     restart: unless-stopped

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import json
 import secrets
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -49,16 +51,33 @@ class Settings(BaseSettings):
     # Trust CF-Connecting-IP / X-Forwarded-For (only enable behind Cloudflare
     # or another proxy you control, otherwise clients can spoof their IP).
     trust_proxy_headers: bool = False
-    
+
+    # Public address of this site, e.g. https://rewatch.example.com. Used for the
+    # canonical link, share previews (Open Graph) and the sitemap. Empty = work it
+    # out from each request, which is fine for a single hostname.
+    public_url: str = ""
+
     # Reject URLs that resolve to private/loopback/link-local addresses (SSRF).
     allow_private_urls: bool = False
-    allowed_hosts: list[str] = Field(default_factory=list)  # empty = any public host
+    # Empty = any public host. In .env write it comma-separated: youtube.com,youtu.be
+    # (a JSON list such as ["youtube.com","youtu.be"] also works).
+    allowed_hosts: Annotated[list[str], NoDecode] = Field(default_factory=list)
+
+    @field_validator("allowed_hosts", mode="before")
+    @classmethod
+    def _split_hosts(cls, v):
+        if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("["):
+                return json.loads(v)
+            return [h.strip() for h in v.split(",") if h.strip()]
+        return v
 
     # media
     # Prefer H.264 + AAC so MP4s play everywhere (iOS, Windows, TVs).
     prefer_compatible_codecs: bool = True
     audio_bitrate_kbps: int = 192
-    
+
     # full path to deno.exe / deno if it isn't on PATH and isn't in a standard location.
     deno_path: str = ""
 

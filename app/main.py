@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import asyncio
+import html
 import logging
+import re
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from . import __version__
@@ -27,6 +29,23 @@ CSP = (
     "font-src 'self'; connect-src 'self'; media-src 'none'; object-src 'none'; "
     "base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
 )
+
+
+_HOST_OK = re.compile(r"^[A-Za-z0-9.\-:\[\]]+$")
+
+
+def public_base_url(request: Request, settings) -> str:
+    """Absolute address of this site, for canonical/share-preview tags and the sitemap."""
+    if settings.public_url:
+        return settings.public_url.rstrip("/")
+    proto = request.url.scheme
+    host = request.headers.get("host") or request.url.netloc
+    if settings.trust_proxy_headers:
+        proto = request.headers.get("x-forwarded-proto", proto).split(",")[0].strip()
+        host = request.headers.get("x-forwarded-host", host).split(",")[0].strip()
+    if proto not in ("http", "https") or not _HOST_OK.match(host):
+        return ""  # never reflect something odd into the page
+    return f"{proto}://{host}"
 
 
 @asynccontextmanager
@@ -92,10 +111,41 @@ def create_app() -> FastAPI:
         return JSONResponse({"status": "ok"})
 
     @app.get("/", include_in_schema=False)
-    async def index():
-        return FileResponse(
-            settings.static_dir / "index.html", headers={"Cache-Control": "no-cache"}
+    async def index(request: Request):
+        # The page carries %%BASE_URL%% placeholders (canonical link, share previews);
+        # fill them in so crawlers and chat apps get absolute addresses.
+        page = (settings.static_dir / "index.html").read_text(encoding="utf-8")
+        base = html.escape(public_base_url(request, settings), quote=True)
+        return HTMLResponse(
+            page.replace("%%BASE_URL%%", base), headers={"Cache-Control": "no-cache"}
         )
+
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def favicon():
+        return FileResponse(
+            settings.static_dir / "icons" / "favicon.ico",
+            media_type="image/x-icon",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+
+    @app.get("/robots.txt", include_in_schema=False)
+    async def robots(request: Request):
+        base = public_base_url(request, settings)
+        lines = ["User-agent: *", "Allow: /", "Disallow: /api/"]
+        if base:
+            lines.append(f"Sitemap: {base}/sitemap.xml")
+        return PlainTextResponse("\n".join(lines) + "\n")
+
+    @app.get("/sitemap.xml", include_in_schema=False)
+    async def sitemap(request: Request):
+        base = html.escape(public_base_url(request, settings), quote=True)
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            f"  <url><loc>{base}/</loc></url>\n"
+            "</urlset>\n"
+        )
+        return Response(xml, media_type="application/xml")
 
     app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
     return app

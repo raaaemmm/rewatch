@@ -4,18 +4,76 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Rewatch: video and music downloader for MP4 and MP3</title>
+  <meta name="description"
+    content="Paste a link from YouTube, TikTok, Instagram or 1000+ other sites, choose MP4 or MP3, and save it. Playlists and several links at once work too. No account needed.">
+  <link rel="canonical" href="%%BASE_URL%%/">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta name="author" content="Raaaemmm">
+
+  <!-- browser and app chrome -->
   <meta name="theme-color" content="#0e1613">
   <meta name="color-scheme" content="dark">
-  <title>Rewatch — save what you're already watching</title>
-  <meta name="description" content="Paste a link, pick MP4 or MP3, download. Self-hosted, no accounts.">
+  <meta name="application-name" content="Rewatch">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Rewatch">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- icons -->
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/static/icons/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="/static/icons/favicon-16.png" type="image/png" sizes="16x16">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="/static/site.webmanifest">
+
+  <!-- Open Graph (Facebook, WhatsApp, Telegram, Discord, LinkedIn, iMessage, Slack) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Rewatch">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Rewatch: save videos and music from almost any site">
+  <meta property="og:description" content="Paste a link, pick MP4 or MP3, and save it. Works with YouTube, TikTok, Instagram and 1000+ more sites, including playlists.">
+  <meta property="og:url" content="%%BASE_URL%%/">
+  <meta property="og:image" content="%%BASE_URL%%/static/icons/og-image.png">
+  <meta property="og:image:secure_url" content="%%BASE_URL%%/static/icons/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Rewatch: a replay arrow around a play button, with MP4, MP3 and playlist support.">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Rewatch: save videos and music from almost any site">
+  <meta name="twitter:description"
+    content="Paste a link, pick MP4 or MP3, and save it. Works with YouTube, TikTok, Instagram and 1000+ more sites.">
+  <meta name="twitter:image" content="%%BASE_URL%%/static/icons/og-image.png">
+  <meta name="twitter:image:alt" content="Rewatch: a replay arrow around a play button, with MP4, MP3 and playlist support.">
+
+  <!-- structured data (search engines read this, browsers never run it) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Rewatch",
+    "url": "%%BASE_URL%%/",
+    "description": "Save videos and music from almost any site as MP4 or MP3. Paste a link, pick a quality, download.",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Any",
+    "browserRequirements": "Requires a modern web browser",
+    "image": "%%BASE_URL%%/static/icons/og-image.png",
+    "author": { "@type": "Person", "name": "Raaaemmm", "url": "https://www.raaaemmm.tech" },
+    "isBasedOn": "https://github.com/averygan/reclip"
+  }
+  </script>
+
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
 
 <body>
   <main class="page">
     <header class="brand">
-      <span class="mark"><span class="reel">◉</span>Rewatch</span>
+      <span class="mark"><img class="mark-icon" src="/static/favicon.svg" width="44" height="44" alt="">Rewatch</span>
       <p>Save videos and music from almost any site. Files are deleted from the server shortly after they're ready.</p>
     </header>
 
