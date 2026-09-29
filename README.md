@@ -82,22 +82,37 @@ To make it reachable from this machine only, change the port mapping to
 
 ## Sharing it with a Cloudflare tunnel
 
+### Quick start (demo / temporary)
+
 ```bash
 cloudflared tunnel --url http://localhost:8000
 # or: python start_server.py --tunnel
 ```
 
-This prints a `https://...trycloudflare.com` address.
+This prints a `https://...trycloudflare.com` address you can share instantly. **Perfect for quick tests and demos.**
 
-- **Anyone with that address can use your instance.** For anything beyond a quick
-  test, use a named tunnel with **Cloudflare Access** (the free tier supports email
-  one-time PINs) instead of relying on the URL being secret.
-- Because the app also listens on your LAN, `REWATCH_TRUST_PROXY_HEADERS` is
-  `false` by default, so all tunnel visitors share one rate-limit bucket. If you
-  bind to `127.0.0.1` and reach the app only through cloudflared, set it to `true`
-  so the limiter uses `CF-Connecting-IP`.
-- Cloudflare's free proxy closes idle connections at about 100 s. The progress
-  stream sends a keep-alive every ~15 s, and the UI falls back to polling if it drops.
+### Production (named tunnel + Cloudflare Access)
+
+For anything beyond a quick test, set up a named tunnel with **Cloudflare Access** (the free tier supports email one-time PINs):
+
+```bash
+cloudflared tunnel login
+cloudflared tunnel create rewatch
+cloudflared tunnel route dns rewatch yourdomain.com
+cloudflared tunnel config
+# add:
+# - hostname: yourdomain.com
+#   service: http://localhost:8000
+cloudflared tunnel run rewatch
+```
+
+Then enable Cloudflare Access to gate access by email.
+
+### Important notes
+
+- **Demo URLs are public.** Anyone with the `trycloudflare.com` address can use your instance. For production, use Access.
+- Because the app also listens on your LAN, `REWATCH_TRUST_PROXY_HEADERS` is `false` by default, so all tunnel visitors share one rate-limit bucket. If you bind to `127.0.0.1` and reach the app only through cloudflared, set it to `true` so the limiter uses `CF-Connecting-IP`.
+- Cloudflare's free proxy closes idle connections at about 100 s. The progress stream sends a keep-alive every ~15 s, and the UI falls back to polling if it drops.
 
 ## Configuration
 
@@ -125,7 +140,7 @@ Jobs are held in memory, so Rewatch runs a **single worker**. Do not start it wi
 
 | Problem | Fix |
 |---|---|
-| Only one or two low qualities show for YouTube | Install **Deno** and make sure `yt-dlp[default]` is installed (`pip install -U "yt-dlp[default]"`). The card shows a warning when this is the cause. |
+| Only one or two low qualities show for YouTube | Install **Deno** and make sure `yt-dlp[default]` is installed (`pip install -U "yt-dlp[default]"`). The card shows a warning when this is the ca[...] |
 | "Unsupported URL" or extraction errors on a site that used to work | Update yt-dlp: `pip install -U "yt-dlp[default]"`. In Docker, rebuild with `docker compose build --no-cache`. |
 | "Too many requests" (429) | You hit the per-IP rate limit. Wait a minute or raise `REWATCH_RATE_LIMIT_PER_MINUTE`. |
 | "Job not found" after restarting the server | Job tokens reset when the secret key is random. Set `REWATCH_SECRET_KEY`. |
