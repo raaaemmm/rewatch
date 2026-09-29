@@ -1,0 +1,31 @@
+services:
+  rewatch:
+    build: .
+    image: rewatch:latest
+    ports:
+      # all interfaces: reachable on your LAN at http://<your-ip>:8000 and via the tunnel
+      # (use "127.0.0.1:8000:8000" instead if only this machine / the tunnel should reach it)
+      - "8000:8000"
+    environment:
+      # required: copy .env.example to .env and set a random value
+      - REWATCH_SECRET_KEY=${REWATCH_SECRET_KEY:?set REWATCH_SECRET_KEY in .env}
+      # off because LAN clients can reach the app directly and could spoof the header;
+      # set to true only if the port is bound to 127.0.0.1 and reached via cloudflared
+      - REWATCH_TRUST_PROXY_HEADERS=false
+      # high enough for "Download all" on a 25-link batch (~50 requests in a burst)
+      - REWATCH_RATE_LIMIT_PER_MINUTE=120
+      - REWATCH_MAX_CONCURRENT_DOWNLOADS=2
+      - REWATCH_FILE_TTL_SECONDS=1800
+    volumes:
+      - downloads:/app/downloads
+    restart: unless-stopped
+    # hardening (no read_only: the entrypoint self-updates yt-dlp into the home dir)
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 2g
+    cpus: 2.0
+
+volumes:
+  downloads:

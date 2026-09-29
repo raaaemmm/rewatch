@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0e1613">
+  <meta name="color-scheme" content="dark">
+  <title>Rewatch — save what you're already watching</title>
+  <meta name="description" content="Paste a link, pick MP4 or MP3, download. Self-hosted, no accounts.">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+  <main class="page">
+    <header class="brand">
+      <span class="mark"><span class="reel">◉</span>rewatch</span>
+      <p>Save videos and music from almost any site. Files are deleted from the server shortly after they're ready.</p>
+    </header>
+
+    <div class="layout">
+      <section class="pane-compose">
+
+        <div class="composer">
+          <label class="field">
+            <span class="field-label">Links</span>
+            <textarea id="urls" placeholder="Paste a video or music link here…" rows="2" autocomplete="off"
+              autocapitalize="off" spellcheck="false" inputmode="url"></textarea>
+          </label>
+          <p class="hint">Tip: paste several links at once, separated by spaces, commas or new lines. Playlists are
+            expanded for you.</p>
+
+          <div class="controls">
+            <div class="pill-group" role="group" aria-label="Format">
+              <button class="pill active" data-format="video" data-action="set-format">MP4</button>
+              <button class="pill" data-format="audio" data-action="set-format">MP3</button>
+            </div>
+            <button class="fetch-btn" id="goBtn" data-action="go">Fetch</button>
+          </div>
+          <div id="form-error" class="banner-error" role="alert" hidden></div>
+        </div>
+      </section>
+
+      <section class="pane-results" aria-label="Results">
+        <div class="empty">
+          <div class="empty-head">
+            <div class="empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" />
+              </svg></div>
+            <div>
+              <h2>Ready when you are</h2>
+              <p>Your videos and songs will show up here, ready to save.</p>
+            </div>
+          </div>
+          <ol class="steps">
+            <li><span><b>Paste</b> a link from YouTube, TikTok, Facebook and more</span></li>
+            <li><span><b>Choose</b> MP4 for video or MP3 for audio</span></li>
+            <li><span><b>Fetch</b>, pick a quality, then tap Download</span></li>
+          </ol>
+        </div>
+        <div id="cards" class="cards" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <footer class="footer">
+      YouTube &middot; TikTok &middot; Instagram &middot; Twitter/X &middot; Reddit &middot; Facebook<br>
+      Vimeo &middot; Twitch &middot; Dailymotion &middot; SoundCloud &middot; Loom &middot; Streamable<br>
+      Pinterest &middot; Tumblr &middot; Threads &middot; LinkedIn &middot; 1000+ more, via yt-dlp
+    </footer>
+  </main>
+
+  <script src="/static/js/app.js"></script>
+</body>
+
+</html>
