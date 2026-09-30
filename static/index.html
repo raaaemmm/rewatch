@@ -5,8 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Rewatch</title>
-  <meta name="description"
-    content="Paste a link from YouTube, TikTok, Instagram or 1000+ other sites, choose MP4 or MP3, and save it. Playlists and several links at once work too. No account needed.">
+  <meta name="description" content="Paste a link from YouTube, TikTok, Instagram or 1000+ other sites, choose Video or Audio, and save it. Playlists and several links at once work too. No account needed.">
   <link rel="canonical" href="%%BASE_URL%%/">
   <meta name="robots" content="index, follow, max-image-preview:large">
   <meta name="author" content="Raaaemmm">
@@ -33,22 +32,21 @@
   <meta property="og:site_name" content="Rewatch">
   <meta property="og:locale" content="en_US">
   <meta property="og:title" content="Rewatch: save videos and music from almost any site">
-  <meta property="og:description" content="Paste a link, pick MP4 or MP3, and save it. Works with YouTube, TikTok, Instagram and 1000+ more sites, including playlists.">
+  <meta property="og:description" content="Paste a link, pick Video or Audio, and save it. Works with YouTube, TikTok, Instagram and 1000+ more sites, including playlists.">
   <meta property="og:url" content="%%BASE_URL%%/">
   <meta property="og:image" content="%%BASE_URL%%/static/icons/og-image.png">
   <meta property="og:image:secure_url" content="%%BASE_URL%%/static/icons/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Rewatch: a replay arrow around a play button, with MP4, MP3 and playlist support.">
+  <meta property="og:image:alt" content="Rewatch — a replay arrow around a play button, with video, audio and playlist support.">
 
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Rewatch: save videos and music from almost any site">
-  <meta name="twitter:description"
-    content="Paste a link, pick MP4 or MP3, and save it. Works with YouTube, TikTok, Instagram and 1000+ more sites.">
+  <meta name="twitter:description" content="Paste a link, pick Video or Audio, and save it. Works with YouTube, TikTok, Instagram and 1000+ more sites.">
   <meta name="twitter:image" content="%%BASE_URL%%/static/icons/og-image.png">
-  <meta name="twitter:image:alt" content="Rewatch: a replay arrow around a play button, with MP4, MP3 and playlist support.">
+  <meta name="twitter:image:alt" content="Rewatch — a replay arrow around a play button, with video, audio and playlist support.">
 
   <!-- structured data (search engines read this, browsers never run it) -->
   <script type="application/ld+json">
@@ -57,7 +55,7 @@
     "@type": "WebApplication",
     "name": "Rewatch",
     "url": "%%BASE_URL%%/",
-    "description": "Save videos and music from almost any site as MP4 or MP3. Paste a link, pick a quality, download.",
+    "description": "Save videos and music from almost any site as video or audio. Paste a link, pick a quality, download.",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Any",
     "browserRequirements": "Requires a modern web browser",
@@ -73,8 +71,14 @@
 <body>
   <main class="page">
     <header class="brand">
-      <span class="mark"><img class="mark-icon" src="/static/favicon.svg" width="44" height="44" alt="">Rewatch</span>
-      <p>Save videos and music from almost any site. Files are deleted from the server shortly after they're ready.</p>
+      <div class="brand-top">
+        <span class="mark"><img class="mark-icon" src="/static/favicon.svg" width="44" height="44" alt="">Rewatch</span>
+        <div class="lang" role="group" aria-label="Language" data-i18n-aria="lang.aria">
+          <button class="lang-btn active" type="button" data-lang="en" data-action="set-lang" lang="en" aria-pressed="true">English</button>
+          <button class="lang-btn" type="button" data-lang="km" data-action="set-lang" lang="km" aria-pressed="false">ខ្មែរ</button>
+        </div>
+      </div>
+      <p data-i18n="brand.tagline">Save videos and music from almost any site. Files are deleted from the server shortly after they're ready.</p>
     </header>
 
     <div class="layout">
@@ -82,21 +86,21 @@
 
         <div class="composer">
           <label class="field">
-            <span class="field-label">Links</span>
-            <textarea id="urls" placeholder="Paste a video or music link here..." rows="2" autocomplete="off"
+            <span class="field-label" data-i18n="links.label">Links</span>
+            <textarea id="urls" placeholder="Paste a video or music link here..." data-i18n-placeholder="links.placeholder" rows="2" autocomplete="off"
               autocapitalize="off" spellcheck="false" inputmode="url"></textarea>
           </label>
-          <p class="hint">You can paste several links at once, separated by spaces or new lines. Playlist links open as
+          <p class="hint" data-i18n="links.hint">You can paste several links at once, separated by spaces or new lines. Playlist links open as
             a list of videos.</p>
 
           <div id="detect" class="detect" role="status" hidden>Playlist detected. All its videos will be listed.</div>
 
           <div class="controls">
-            <div class="pill-group" role="group" aria-label="Format">
-              <button class="pill active" data-format="video" data-action="set-format">MP4</button>
-              <button class="pill" data-format="audio" data-action="set-format">MP3</button>
+            <div class="pill-group" role="group" aria-label="Format" data-i18n-aria="format.aria">
+              <button class="pill active" data-format="video" data-action="set-format" data-i18n="format.video">Video</button>
+              <button class="pill" data-format="audio" data-action="set-format" data-i18n="format.audio">Audio</button>
             </div>
-            <button class="fetch-btn" id="goBtn" data-action="go">Get</button>
+            <button class="fetch-btn" id="goBtn" data-action="go" data-i18n="btn.get">Get</button>
           </div>
           <div id="batch" class="batch" hidden>
             <div class="batch-info"><b id="batch-title"></b><span id="batch-sub"></span></div>
@@ -107,7 +111,7 @@
         </div>
       </section>
 
-      <section class="pane-results" aria-label="Results">
+      <section class="pane-results" aria-label="Results" data-i18n-aria="results.aria">
         <div class="empty">
           <div class="empty-head">
             <div class="empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -115,14 +119,14 @@
                 <path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14" />
               </svg></div>
             <div>
-              <h2>Ready when you are</h2>
-              <p>Your videos and songs will show up here, ready to save.</p>
+              <h2 data-i18n="empty.title">Ready when you are</h2>
+              <p data-i18n="empty.sub">Your videos and songs will show up here, ready to save.</p>
             </div>
           </div>
           <ol class="steps">
-            <li><span><b>Paste</b> a link from YouTube, TikTok, Facebook and more</span></li>
-            <li><span><b>Choose</b> MP4 for video or MP3 for audio</span></li>
-            <li><span><b>Get</b>, pick a quality, then tap Download</span></li>
+            <li><span data-i18n-html="empty.step1"><b>Paste</b> a link from YouTube, TikTok, Facebook and more</span></li>
+            <li><span data-i18n-html="empty.step2"><b>Choose</b> Video to watch it or Audio to just listen</span></li>
+            <li><span data-i18n-html="empty.step3"><b>Get</b>, pick a quality, then tap Download</span></li>
           </ol>
         </div>
         <div id="cards" class="cards" aria-live="polite"></div>
@@ -148,16 +152,17 @@
         <li>Threads</li>
         <li>LinkedIn</li>
       </ul>
-      <p class="footer-note">Works with 1000+ more sites through <a href="https://github.com/yt-dlp/yt-dlp"
+      <p class="footer-note" data-i18n-html="footer.note">Works with 1000+ more sites through <a href="https://github.com/yt-dlp/yt-dlp"
           target="_blank" rel="noopener">yt-dlp</a>.</p>
       <div class="credits">
-        <p>Rebuilt from <a href="https://github.com/averygan/reclip" target="_blank" rel="noopener">ReClip</a>, the
+        <p data-i18n-html="footer.credit1">Rebuilt from <a href="https://github.com/averygan/reclip" target="_blank" rel="noopener">ReClip</a>, the
           open-source downloader by averygan (MIT license).</p>
-        <p>Rebuilt by <a href="https://www.raaaemmm.tech" target="_blank" rel="noopener">Raaaemmm</a>, 2026.</p>
+        <p data-i18n-html="footer.credit2">Rebuilt by <a href="https://www.raaaemmm.tech" target="_blank" rel="noopener">Raaaemmm</a>, 2026.</p>
       </div>
     </footer>
   </main>
 
+  <script src="/static/js/i18n.js"></script>
   <script src="/static/js/app.js"></script>
 </body>
 

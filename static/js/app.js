@@ -46,6 +46,8 @@ document.addEventListener("click", (e) => {
   else if (action === "save-card") saveCard(idx);
   else if (action === "dl-all") dlAll();
   else if (action === "retry-info") loadInfo(idx);
+  else if (action === "split-photos") splitPhotos(idx);
+  else if (action === "set-lang") changeLang(el.dataset.lang);
 });
 
 function parseUrls(text) {
@@ -53,11 +55,18 @@ function parseUrls(text) {
   return urls;
 }
 
+// human-friendly durations: "18 sec", "3 min 25 sec", "1 hr 2 min" (or the Khmer equivalents).
 function fmtDur(s) {
   if (!s && s !== 0) return "";
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  return `${m}:${sec.toString().padStart(2, "0")}`;
+  const total = Math.round(s);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const sec = total % 60;
+  const parts = [];
+  if (h) parts.push(t("dur.hr", { n: h }));
+  if (m) parts.push(t("dur.min", { n: m }));
+  if (!h && (sec || !parts.length)) parts.push(t("dur.sec", { n: sec }));
+  return parts.join(" ");
 }
 
 function esc(s) {
@@ -66,61 +75,79 @@ function esc(s) {
   return d.innerHTML;
 }
 
-// Turns server / yt-dlp error text into plain-language advice: what happened and what to do next.
+// turns server / yt-dlp error text into plain-language advice: what happened and what to do next.
 function friendlyError(err) {
   const e = String(err || "");
   const rules = [
+
     // connection and server load
-    [/failed to fetch|networkerror|load failed|network/i, "Can't reach the server. Check your connection and try again."],
-    [/too many requests|slow down|HTTP Error 429/i, "That's a lot at once. Wait a few seconds and try again."],
-    [/queue is full/i, "The server is busy right now. Try again in a minute."],
-    [/timed out|took too long/i, "That took too long. Try again, or pick a lower quality."],
-    [/lost connection/i, "Lost the connection to the server. Try again."],
-    [/unexpected server error/i, "Something went wrong on our side. Please try again."],
-    [/job not found|expired|file not ready/i, "This download has expired. Get the link again to restart it."],
+    [/failed to fetch|networkerror|load failed|network/i, "e.network"],
+    [/too many requests|slow down|HTTP Error 429/i, "e.rate"],
+    [/queue is full/i, "e.queue"],
+    [/timed out|took too long/i, "e.timeout"],
+    [/lost connection/i, "e.lost"],
+    [/unexpected server error/i, "e.server"],
+    [/job not found|expired|file not ready/i, "e.expired"],
+
+    // TikTok photo slideshows
+    [/no photos found|couldn't read the photos/i, "e.noPhotos"],
+    [/need gallery-dl|run gallery-dl/i, "e.needGalleryDl"],
+    [/needs ffmpeg/i, "e.needFfmpeg"],
+    [/could not download the slideshow files|non-tiktok/i, "e.slideDl"],
+    [/could not build the slideshow/i, "e.slideBuild"],
+    [/isn't in this post/i, "e.photoGone"],
+    [/no music to save/i, "e.noMusic"],
+    [/photo or audio file is too large/i, "e.photoBig"],
+
     // the link itself
-    [/only http/i, "That isn't a web link. Links start with https://"],
-    [/invalid url/i, "That doesn't look like a valid link. Check it and try again."],
-    [/embedded credentials/i, "Remove the username and password from the link and try again."],
-    [/private addresses/i, "This address can't be used. Paste a public video or music link."],
-    [/could not resolve host/i, "We couldn't find that website. Check the link for typos."],
-    [/allow-list/i, "This website isn't supported on this server."],
-    [/unsupported url/i, "This link isn't supported. Paste a direct video or music link."],
-    [/no media found|no video formats/i, "No video or audio found at this link."],
-    [/HTTP Error 404|\b404\b|not found/i, "Nothing was found at this link. It may have been removed."],
+    [/only http/i, "e.onlyHttp"],
+    [/invalid url/i, "e.invalidUrl"],
+    [/embedded credentials/i, "e.credentials"],
+    [/private addresses/i, "e.private"],
+    [/could not resolve host/i, "e.resolve"],
+    [/allow-list/i, "e.allow"],
+    [/unsupported url/i, "e.unsupported"],
+    [/no media found|no video formats/i, "e.noMedia"],
+    [/pfbid|permalink\.php|\/share\/p\//i, "e.fbPost"],
+    [/only available for registered users|log ?in required|login required|sign in to view|cookies/i, "e.login"],
+    [/HTTP Error 404|\b404\b|not found/i, "e.notFound"],
     // the video
-    [/video unavailable|this video is not available|has been removed|no longer available/i, "This video isn't available. It may have been removed or made private."],
-    [/private video/i, "This video is private, so it can't be downloaded."],
-    [/members[- ]only|join this channel/i, "This video is for channel members only."],
-    [/confirm your age|age[- ]restricted/i, "This video is age-restricted, so it can't be downloaded."],
-    [/not a bot|sign in to confirm/i, "The site wants to verify this request. Try again in a few minutes."],
-    [/copyright/i, "This video is blocked by a copyright claim."],
-    [/geo[- ]?restrict|geographic|in your country|not available in your/i, "This video isn't available in your region."],
-    [/live streams? (are|is) not supported|is live/i, "Live streams can't be downloaded. Try again after it ends."],
-    [/requested format is not available/i, "That quality isn't available. Pick another one."],
-    [/HTTP Error 403|\b403\b|forbidden/i, "The site refused the request. Try again in a moment."],
+    [/video unavailable|this video is not available|has been removed|no longer available/i, "e.unavailable"],
+    [/private video/i, "e.privateVideo"],
+    [/members[- ]only|join this channel/i, "e.members"],
+    [/confirm your age|age[- ]restricted/i, "e.age"],
+    [/not a bot|sign in to confirm/i, "e.bot"],
+    [/copyright/i, "e.copyright"],
+    [/geo[- ]?restrict|geographic|in your country|not available in your/i, "e.geo"],
+    [/live streams? (are|is) not supported|is live/i, "e.live"],
+    [/requested format is not available/i, "e.format"],
+    [/HTTP Error 403|\b403\b|forbidden/i, "e.forbidden"],
     // limits
-    [/longer than (\d+)h/i, (m) => `This is longer than ${m[1]} hours, which is the most this server can save.`],
-    [/larger than|exceed the size|size limit/i, "This file is too big for this server. Try a lower quality or a shorter video."],
-    [/^cancelled$/i, "Download cancelled."],
+    [/longer than (\d+)h/i, (m) => ({ key: "e.tooLong", params: { h: m[1] } })],
+    [/larger than|exceed the size|size limit/i, "e.tooBig"],
+    [/^cancelled$/i, "e.cancelled"],
   ];
   for (const [re, msg] of rules) {
     const m = e.match(re);
-    if (m) return typeof msg === "function" ? msg(m) : msg;
+    if (m) {
+      const r = typeof msg === "function" ? msg(m) : msg;
+      return typeof r === "string" ? t(r) : t(r.key, r.params);
+    }
   }
-  return "We couldn't process this link. It may not be supported, or the site may be blocking downloads.";
+  return t("e.generic");
 }
 
 function detailText(data, fallback) {
   return typeof data?.detail === "string" ? data.detail : fallback;
 }
 
-// The note under the field: a playlist hint, or a heads-up when we trimmed the list.
-const PLAYLIST_NOTE = "Playlist detected. All its videos will be listed.";
-function setNote(text) {
+// the note under the field: a playlist hint, or a heads-up when we trimmed the list.
+let noteState = null; // { key, params } so the note can be re-translated when the language changes
+function setNote(key, params) {
+  noteState = key ? { key, params } : null;
   const n = $("detect");
-  n.textContent = text || "";
-  n.hidden = !text;
+  n.textContent = key ? t(key, params) : "";
+  n.hidden = !key;
 }
 
 function showFormError(msg) {
@@ -143,21 +170,33 @@ async function go() {
   if (!urls.length) {
     showFormError(
       raw.trim()
-        ? "That doesn't look like a link. Links start with https://"
-        : "Paste a link first. YouTube, TikTok and most other video sites work.",
+        ? t("err.notLink")
+        : t("err.pasteFirst"),
     );
     $("urls").focus();
     return;
   }
   if (!navigator.onLine) {
-    showFormError("You're offline. Reconnect and try again.");
+    showFormError(t("err.offline"));
     return;
+  }
+
+  // hongguo series pages list many episodes but aren't videos themselves. Ask for a single episode link.
+  const isHongguoSeries = (u) => /^https?:\/\/([^/]+\.)?hongguoduanju\.com\/detail/i.test(u);
+  if (urls.some(isHongguoSeries)) {
+    urls = urls.filter((u) => !isHongguoSeries(u));
+    if (!urls.length) {
+      showFormError(t("err.series"));
+      $("urls").focus();
+      return;
+    }
+    setNote("note.seriesSkipped");
   }
 
   const btn = $("goBtn");
   const container = $("cards");
   btn.disabled = true;
-  btn.innerHTML = `<span class="reel-spin"></span> Getting…`;
+  btn.innerHTML = `<span class="reel-spin"></span> ${esc(t("btn.getting"))}`;
   container.innerHTML = "";
   cardData = [];
   batchKind = "links";
@@ -185,7 +224,7 @@ async function go() {
   }
 
   if (urls.length > maxUrls) {
-    setNote(`That's ${urls.length} links. Getting the first ${maxUrls}.`);
+    setNote("note.trimmed", { n: urls.length, m: maxUrls });
     urls = urls.slice(0, maxUrls);
   }
 
@@ -199,10 +238,49 @@ async function go() {
   fetching = false;
   updateBatch();
   btn.disabled = false;
-  btn.textContent = "Get";
+  btn.textContent = t("btn.get");
 }
 
-// Reads one link's details. Also used by the "Try again" button on a failed card.
+// TikTok photo posts (/@user/photo/<id>) can be saved as one video or as separate images.
+const PHOTO_POST = /^https?:\/\/(www\.|m\.)?tiktok\.com\/@[^/?#]+\/photo\/\d+/i;
+
+// "Save as photos": swaps the slideshow card for one card per photo, like a playlist.
+async function splitPhotos(idx) {
+  const c = cardData[idx];
+  $("form-error").hidden = true;
+  try {
+    const res = await fetch(`${API}/playlist`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: c.url }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.photos?.length) {
+      showFormError(friendlyError(detailText(data, "Could not list the photos")));
+      return;
+    }
+    $("cards").innerHTML = "";
+    cardData = data.photos.map((p) => ({
+      url: p.url,
+      kind: "image",
+      status: "ready",
+      title: p.title,
+      thumbnail: p.thumbnail,
+      uploader: c.uploader,
+      formats: [],
+      selectedHeight: null,
+      selectedBitrate: DEFAULT_BITRATE,
+    }));
+    batchKind = "photos";
+    batchTotal = cardData.length;
+    cardData.forEach((_, i) => renderCard(i));
+    updateBatch();
+  } catch (err) {
+    showFormError(friendlyError(err.message));
+  }
+}
+
+// reads one link's details. Also used by the "Try again" button on a failed card.
 async function loadInfo(idx) {
   const url = cardData[idx].url;
   cardData[idx] = { url, status: "loading" };
@@ -226,6 +304,7 @@ async function loadInfo(idx) {
         uploader: data.uploader || "",
         formats: data.formats || [],
         warning: data.warning || "",
+        photos: data.photos || 0,
         selectedHeight: data.formats?.[0]?.height ?? null, // default to the highest resolution
         selectedBitrate: DEFAULT_BITRATE,
       };
@@ -234,6 +313,29 @@ async function loadInfo(idx) {
     cardData[idx] = { url, status: "info-error", error: err.message };
   }
   renderCard(idx);
+}
+
+// friendly quality names: 4K / 2K / Full HD / HD / SD instead of raw pixel heights.
+function qualityName(height) {
+  if (height >= 4320) return "8K";
+  if (height >= 2160) return "4K";
+  if (height >= 1440) return "2K";
+  if (height >= 1080) return "Full HD";
+  if (height >= 720) return "HD";
+  if (height >= 480) return "SD";
+  return t("q.low");
+}
+
+// if two resolutions land in the same bucket (e.g. 540p and 480p), keep the pixel height so chips stay distinct.
+function videoChipLabels(formats) {
+  const names = formats.map((f) => qualityName(f.height));
+  return formats.map((f, i) => (names.filter((n) => n === names[i]).length > 1 ? `${names[i]} · ${f.height}p` : names[i]));
+}
+
+function bitrateName(kbps, all) {
+  const sorted = [...all].sort((a, b) => a - b);
+  const names = sorted.length === 3 ? ["q.standard", "q.high", "q.best"] : sorted.length === 2 ? ["q.standard", "q.best"] : null;
+  return names ? t(names[sorted.indexOf(kbps)]) : t("q.kbps", { n: kbps });
 }
 
 function renderCard(idx) {
@@ -255,7 +357,7 @@ function renderCard(idx) {
         <div class="skeleton-line meta"></div>
         <div class="skeleton-chips"><i></i><i></i><i></i><i></i></div>
         <div class="skeleton-btn"></div>
-        <span class="sr-only">Reading link...</span>
+        <span class="sr-only">${esc(t("card.reading"))}</span>
       </div>`;
     return;
   }
@@ -267,45 +369,50 @@ function renderCard(idx) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
       </div>
       <div class="card-body">
-        <div class="card-title card-title-error">Couldn't load this link</div>
+        <div class="card-title card-title-error">${esc(t("card.couldntLoad"))}</div>
         <div class="card-error-msg">${esc(friendlyError(c.error || ""))}</div>
         <div class="card-error-url">${esc(c.url)}</div>
-        <div class="card-actions"><button class="card-dl-btn retry" data-action="retry-info" data-idx="${idx}">Try again</button></div>
+        <div class="card-actions"><button class="card-dl-btn retry" data-action="retry-info" data-idx="${idx}">${esc(t("btn.tryAgain"))}</button></div>
       </div>`;
     return;
   }
 
   el.className = "card";
-  const isAudio = currentFormat === "audio";
+  const isAudio = currentFormat === "audio" && c.kind !== "image";
 
   let thumbHtml;
-  if (isAudio) {
+  if (isAudio && !c.thumbnail) {
     thumbHtml = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" class="thumb-audio"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
   } else if (c.thumbnail) {
-    thumbHtml = `<img src="${esc(c.thumbnail)}" alt="" loading="lazy"${c.boxed ? ' class="boxed"' : ""}>`;
+
+    // audio keeps the cover art and adds a small music-note badge so it's clear you're saving sound only.
+    const audioBadge = isAudio ? `<span class="thumb-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>` : "";
+    thumbHtml = `${audioBadge}<img src="${esc(c.thumbnail)}" alt="" loading="lazy"${c.boxed ? ' class="boxed"' : ""}>`;
   } else {
     thumbHtml = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>`;
   }
 
   let qualityChips = "";
 
-  // Show chips even for a single format so the resolution you'll get is always visible.
+  // show chips even for a single format so the resolution you'll get is always visible.
   if (!isAudio && c.formats?.length > 0 && c.status === "ready") {
+    const labels = videoChipLabels(c.formats);
     qualityChips = c.formats
-      .map((f) => `<button class="q-chip${f.height === c.selectedHeight ? " active" : ""}" data-action="pick-height" data-idx="${idx}" data-height="${f.height}">${esc(f.label)}</button>`)
+      .map((f, i) => `<button class="q-chip${f.height === c.selectedHeight ? " active" : ""}" data-action="pick-height" data-idx="${idx}" data-height="${f.height}" title="${esc(f.label)}">${esc(labels[i])}</button>`)
       .join("");
   } else if (isAudio && c.status === "ready") {
     qualityChips = audioBitrates
-      .map((kbps) => `<button class="q-chip${kbps === c.selectedBitrate ? " active" : ""}" data-action="pick-bitrate" data-idx="${idx}" data-bitrate="${kbps}">${kbps}kbps</button>`)
+      .map((kbps) => `<button class="q-chip${kbps === c.selectedBitrate ? " active" : ""}" data-action="pick-bitrate" data-idx="${idx}" data-bitrate="${kbps}" title="${kbps} kbps">${bitrateName(kbps, audioBitrates)}</button>`)
       .join("");
   }
 
   let actionHtml = "";
   if (c.status === "ready") {
-    actionHtml = `<button class="card-dl-btn" data-action="dl-card" data-idx="${idx}">Download</button>${qualityChips ? `<div class="chips">${qualityChips}</div>` : ""}`;
+    const photosBtn = !isAudio && (c.photos > 0 || PHOTO_POST.test(c.url)) && c.kind !== "image" ? `<button class="icon-btn" data-action="split-photos" data-idx="${idx}">${esc(t("btn.savePhotos"))}</button>` : "";
+    actionHtml = `<button class="card-dl-btn" data-action="dl-card" data-idx="${idx}">${esc(t("btn.download"))}</button>${photosBtn}${qualityChips ? `<div class="chips">${qualityChips}</div>` : ""}`;
   } else if (c.status === "downloading" || c.status === "processing") {
     const pct = Math.round(c.progress || 0);
-    const label = c.status === "processing" ? "Almost done. Finishing your file..." : c.speed ? `${c.speed}${c.eta != null ? " · " + fmtDur(c.eta) + " left" : ""}` : "Starting...";
+    const label = c.status === "processing" ? t("progress.finishing") : c.speed ? `${c.speed}${c.eta != null ? t("progress.left", { t: fmtDur(c.eta) }) : ""}` : t("progress.starting");
     actionHtml = `
       <div class="card-progress grow">
         <span class="reel-spin"></span>
@@ -313,27 +420,27 @@ function renderCard(idx) {
         <span>${pct}%</span>
       </div>
       <span class="card-status small">${esc(label)}</span>
-      <button class="icon-btn" data-action="cancel-card" data-idx="${idx}">Cancel</button>`;
+      <button class="icon-btn" data-action="cancel-card" data-idx="${idx}">${esc(t("btn.cancel"))}</button>`;
   } else if (c.status === "done") {
-    actionHtml = `<button class="card-dl-btn done" data-action="save-card" data-idx="${idx}">Save file</button>
-      <span class="card-status done">${c.filename ? "Saved as " + esc(c.filename) : "Your download is ready."}</span>`;
+    actionHtml = `<button class="card-dl-btn done" data-action="save-card" data-idx="${idx}">${esc(t("btn.saveFile"))}</button>
+      <span class="card-status done">${c.filename ? esc(t("card.ready", { name: c.filename })) : esc(t("card.readyGeneric"))}</span>`;
   } else if (c.status === "error") {
-    actionHtml = `<button class="card-dl-btn retry" data-action="dl-card" data-idx="${idx}">Retry</button>
+    actionHtml = `<button class="card-dl-btn retry" data-action="dl-card" data-idx="${idx}">${esc(t("btn.retry"))}</button>
       <span class="card-status error">${esc(friendlyError(c.error || "Download failed"))}</span>`;
   } else if (c.status === "cancelled") {
-    actionHtml = `<button class="card-dl-btn" data-action="dl-card" data-idx="${idx}">Download</button>
-      <span class="card-status cancelled">Download cancelled</span>`;
+    actionHtml = `<button class="card-dl-btn" data-action="dl-card" data-idx="${idx}">${esc(t("btn.download"))}</button>
+      <span class="card-status cancelled">${esc(t("card.cancelled"))}</span>`;
   }
 
   el.innerHTML = `
     <div class="card-thumb">${thumbHtml}</div>
     <div class="card-body">
-      <div class="card-title">${esc(c.title || "Untitled")}</div>
-      <div class="card-meta">${esc(c.uploader)}${c.duration ? " · " + fmtDur(c.duration) : ""}</div>
+      <div class="card-title">${esc(c.title || t("card.untitled"))}</div>
+      <div class="card-meta">${esc([c.uploader, c.duration ? fmtDur(c.duration) : ""].filter(Boolean).join(" · "))}</div>
       <div class="card-actions">${actionHtml}</div>
-      ${c.warning && !isAudio ? `<div class="card-warning">${esc(c.warning)}</div>` : ""}
+      ${c.warning && !isAudio ? `<div class="card-warning" title="${esc(c.warning)}">${esc(t("card.warning"))}</div>` : ""}
     </div>`;
-  // The CSP forbids inline style attributes; setting styles via the CSSOM is allowed.
+  // the CSP forbids inline style attributes; setting styles via the CSSOM is allowed.
   el.querySelectorAll("[data-pct]").forEach((n) => { n.style.width = `${n.dataset.pct}%`; });
   updateBatch();
 }
@@ -348,12 +455,15 @@ function updateBatch() {
   const done = count("done");
   const failed = count("info-error");
   const total = Math.max(batchTotal, cardData.length);
-  $("batch-title").textContent = batchKind === "playlist" ? `${total} videos in this playlist` : `${total} links`;
+  $("batch-title").textContent =
+    batchKind === "playlist" ? t("batch.playlist", { n: total })
+      : batchKind === "photos" ? t("batch.photos", { n: total })
+        : t("batch.links", { n: total });
   const parts = [];
-  if (fetching) parts.push(`Loading ${cardData.length - count("loading")} of ${total}…`);
-  else parts.push(`${ready + busy + done} ready to download`);
-  if (failed && !fetching) parts.push(`${failed} couldn't load`);
-  if (done) parts.push(`${done} downloaded`);
+  if (fetching) parts.push(t("batch.loading", { a: cardData.length - count("loading"), b: total }));
+  else parts.push(t("batch.ready", { n: ready + busy + done }));
+  if (failed && !fetching) parts.push(t("batch.failed", { n: failed }));
+  if (done) parts.push(t("batch.done", { n: done }));
   $("batch-sub").textContent = parts.join(" · ");
   const active = ready + busy + done;
   const track = $("batch-track");
@@ -361,7 +471,7 @@ function updateBatch() {
   if (active) $("batch-bar").style.width = `${Math.round((done / active) * 100)}%`;
   const btn = $("dlAllBtn");
   btn.disabled = fetching || batchRunning || busy > 0 || ready === 0;
-  btn.textContent = busy || batchRunning ? "Downloading..." : ready ? `Download all (${ready})` : done ? "All downloaded" : "Download all";
+  btn.textContent = busy || batchRunning ? t("btn.downloading") : ready ? t("btn.dlAllN", { n: ready }) : done ? t("btn.allDone") : t("btn.dlAll");
 }
 
 function pickHeight(idx, height) {
@@ -387,9 +497,9 @@ async function dlCard(idx) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         url: c.url,
-        format: currentFormat,
-        height: currentFormat === "video" ? c.selectedHeight : null,
-        audio_bitrate: currentFormat === "audio" ? c.selectedBitrate : null,
+        format: c.kind === "image" ? "video" : currentFormat, // a photo is always saved as the image
+        height: c.kind !== "image" && currentFormat === "video" ? c.selectedHeight : null,
+        audio_bitrate: c.kind !== "image" && currentFormat === "audio" ? c.selectedBitrate : null,
         title: c.title || "",
       }),
     });
@@ -489,24 +599,38 @@ async function dlAll() {
   updateBatch();
 }
 
-// Some sites return a 4:3 thumbnail with black bars baked in. Detect that shape and zoom past the bars.
+// some sites return a 4:3 thumbnail with black bars baked in. Detect that shape and zoom past the bars.
 document.addEventListener("load", (e) => {
   const img = e.target;
   if (!(img instanceof HTMLImageElement) || !img.closest(".card-thumb")) return;
-  if (img.naturalWidth / img.naturalHeight >= 1.5) return;
-  img.classList.add("boxed");
+  const ratio = img.naturalWidth / img.naturalHeight;
+  if (ratio >= 1.5 || ratio < 1.1) return; // only 4:3-ish shots have baked-in bars; posters and squares stay as they are
   const idx = Number(img.closest(".card")?.id.replace("card-", ""));
+  if (cardData[idx]?.kind === "image") return; // photos are shown as they are
+  img.classList.add("boxed");
   if (cardData[idx]) cardData[idx].boxed = true;
 }, true);
 
+// switching language re-renders everything that was built from text: cards, batch bar, note, button label.
+function changeLang(next) {
+  if (!I18N.setLang(next)) return;
+  $("form-error").hidden = true;
+  if (noteState) setNote(noteState.key, noteState.params);
+  if (!fetching) $("goBtn").textContent = t("btn.get");
+  cardData.forEach((_, i) => renderCard(i));
+  updateBatch();
+}
+
+I18N.init();
 loadConfig();
 
 // friendlier input: clear the hint once typing resumes; focus the box on desktop (not phones, to avoid the keyboard).
 $("urls").addEventListener("input", () => {
   $("form-error").hidden = true;
-  setNote(/[?&]list=/.test($("urls").value) ? PLAYLIST_NOTE : "");
+  setNote(/[?&]list=/.test($("urls").value) ? "note.playlist" : "");
 });
 if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) $("urls").focus();
-// Say so when the connection drops, and clear the message when it comes back.
-window.addEventListener("offline", () => showFormError("You're offline. Reconnect to keep going."));
+
+// say so when the connection drops, and clear the message when it comes back.
+window.addEventListener("offline", () => showFormError(t("err.offlineKeep")));
 window.addEventListener("online", () => { $("form-error").hidden = true; });

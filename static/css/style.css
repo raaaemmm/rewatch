@@ -501,8 +501,12 @@ textarea#urls::placeholder {
 }
 
 .icon-btn {
-  min-height: 36px;
-  padding: 0 16px;
+  order: 3;
+  min-height: 44px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   background: var(--ink);
   color: var(--paper-dim);
   font-size: 13px;
@@ -709,6 +713,12 @@ textarea#urls::placeholder {
   .card-dl-btn {
     min-height: 52px;
     flex: 1 1 100%;
+  }
+
+  .icon-btn {
+    min-height: 48px;
+    flex: 1 1 100%;
+    justify-content: center;
   }
 
   .q-chip {
@@ -1227,4 +1237,82 @@ a,
   width: 1.3em;
   height: 1.3em;
   border-radius: 28%;
+}
+
+/* Audio cards keep the thumbnail and add a small music-note badge. */
+.card-thumb {
+  position: relative;
+}
+
+.thumb-badge {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(14, 22, 19, .72);
+  color: var(--accent-strong);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.card-thumb .thumb-badge svg {
+  width: 18px;
+  height: 18px;
+  color: inherit;
+}
+
+/* ---- language switch (English / ខ្មែរ) ---- */
+.brand-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.lang {
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+  padding: 3px;
+  background: var(--ink);
+  border-radius: var(--r-full);
+}
+
+.lang-btn {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--paper-dim);
+  transition: background-color .2s var(--ease), color .2s var(--ease);
+}
+
+.lang-btn:hover {
+  color: var(--paper);
+}
+
+.lang-btn.active {
+  background: var(--tonal);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+/* Khmer needs a little more line height so stacked marks don't collide. */
+html[lang="km"] body {
+  line-height: 1.75;
+}
+
+html[lang="km"] .card-title {
+  line-height: 1.6;
 }

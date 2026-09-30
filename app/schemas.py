@@ -23,11 +23,21 @@ class InfoResponse(BaseModel):
     uploader: str = ""
     formats: list[FormatOption] = []
     warning: str = ""  # non-fatal server-side problem the UI should show
+    photos: int = 0  # >0 = a photo slideshow with this many photos
+
+
+class PhotoItem(BaseModel):
+    """One photo of a slideshow post (TikTok), ready to show as its own card."""
+
+    url: str
+    thumbnail: str = ""
+    title: str = ""
 
 
 class PlaylistResponse(BaseModel):
     urls: list[str]
     truncated: bool = False
+    photos: list[PhotoItem] = []  # only for slideshow posts
 
 
 AUDIO_BITRATES: tuple[int, ...] = (128, 192, 320)

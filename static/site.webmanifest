@@ -1,7 +1,7 @@
 {
   "name": "Rewatch",
   "short_name": "Rewatch",
-  "description": "Save videos and music from almost any site as MP4 or MP3.",
+  "description": "Save videos and music from almost any site as video or audio.",
   "id": "/",
   "start_url": "/",
   "scope": "/",

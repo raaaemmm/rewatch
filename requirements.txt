@@ -2,3 +2,4 @@ fastapi==0.121.2
 uvicorn[standard]==0.38.0
 yt-dlp[default]>=2026.8.19  # [default] pulls in yt-dlp-ejs, needed for full YouTube formats
 pydantic-settings==2.12.0
+gallery-dl>=1.30  # TikTok photo slideshows (yt-dlp cannot read them)

@@ -139,6 +139,11 @@ def _first_entry(info: dict) -> dict:
 
 
 def fetch_info(url: str, settings: Settings) -> InfoResponse:
+    from . import slideshow  # local import: slideshow imports this module
+
+    url = slideshow.resolve_photo(url)  # TikTok app share links
+    if slideshow.is_photo_post(url):
+        return slideshow.fetch_info(url, settings)
     try:
         with YoutubeDL(_base_opts(settings)) as ydl:
             info = _first_entry(
@@ -197,6 +202,11 @@ def fetch_info(url: str, settings: Settings) -> InfoResponse:
 
 
 def fetch_playlist(url: str, settings: Settings) -> PlaylistResponse:
+    from . import slideshow  # local import: slideshow imports this module
+
+    url = slideshow.resolve_photo(url)
+    if slideshow.is_photo_post(url):
+        return slideshow.photo_entries(url, settings)
     opts = _base_opts(settings) | {
         "noplaylist": False,
         "extract_flat": "in_playlist",
@@ -257,6 +267,21 @@ def run_download(
     is_cancelled: Callable[[], bool],
 ) -> tuple[Path, str]:
     """Blocking. Returns (path_on_disk, download_filename)."""
+    from . import slideshow  # local import: slideshow imports this module
+
+    url = slideshow.resolve_photo(url)
+    if slideshow.is_photo_post(url):
+        return slideshow.run_download(
+            url=url,
+            fmt=fmt,
+            height=height,
+            audio_bitrate=audio_bitrate,
+            title=title,
+            job_id=job_id,
+            settings=settings,
+            on_update=on_update,
+            is_cancelled=is_cancelled,
+        )
     out_dir = settings.download_dir
     started = time.monotonic()
     opts = _base_opts(settings) | {

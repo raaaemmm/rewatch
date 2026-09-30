@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     cleanup_interval_seconds: int = 60
 
     # limits
-    max_concurrent_downloads: int = 2  # worker pool size
+    max_concurrent_downloads: int = 5  # worker pool size
     max_queued_jobs: int = 50  # reject new jobs (429) beyond this
     max_playlist_items: int = 50
     max_urls_per_batch: int = 25  # advertised to the UI
@@ -80,6 +80,9 @@ class Settings(BaseSettings):
 
     # full path to deno.exe / deno if it isn't on PATH and isn't in a standard location.
     deno_path: str = ""
+
+    # TikTok photo slideshows: most photos to turn into one video.
+    slideshow_max_photos: int = 40
 
 
 @lru_cache
