@@ -16,8 +16,10 @@
 
   --tonal: rgba(111, 168, 143, 0.20);
   --c-low: color-mix(in srgb, var(--accent) 6%, var(--surface));
+
   /* surface container low  */
   --c-high: color-mix(in srgb, var(--accent) 11%, var(--card));
+
   /* surface container high */
   --r-sm: 12px;
   --r-md: 16px;
@@ -68,7 +70,7 @@ body {
   }
 }
 
-/* ---- brand ---- */
+/* brand */
 .brand {
   margin: 4px 4px 20px;
 }
@@ -101,7 +103,7 @@ body {
   hyphens: none;
 }
 
-/* ---- buttons: shared state layer + shape morph on press ---- */
+/* buttons: shared state layer + shape morph on press */
 .pill,
 .fetch-btn,
 .card-dl-btn,
@@ -109,6 +111,7 @@ body {
 .icon-btn,
 .dl-all-btn {
   appearance: none;
+  white-space: nowrap;
   position: relative;
   isolation: isolate;
   overflow: hidden;
@@ -156,7 +159,7 @@ body {
   opacity: .14;
 }
 
-/* ---- compose pane ---- */
+/* compose pane */
 .composer {
   background: var(--c-high);
   border-radius: var(--r-xxl);
@@ -263,7 +266,7 @@ textarea#urls::placeholder {
 .fetch-btn {
   flex: 1 1 180px;
   min-height: 56px;
-  padding: 0 32px;
+  padding: 0 24px;
   background: var(--accent);
   color: #0e1613;
   font-weight: 700;
@@ -312,7 +315,7 @@ textarea#urls::placeholder {
   display: none;
 }
 
-/* ---- results pane (container-query driven) ---- */
+/* results pane (container-query driven) */
 .pane-results {
   container-type: inline-size;
   margin-top: 20px;
@@ -846,7 +849,7 @@ textarea#urls::placeholder {
   font-size: 11.5px;
 }
 
-/* ---- playlist detect + batch panel (sits under the form) ---- */
+/* playlist detect + batch panel (sits under the form) */
 .detect {
   margin: -2px 4px 0;
   padding: 8px 14px;
@@ -1051,7 +1054,7 @@ textarea#urls::placeholder {
 }
 
 
-/* ---- loading skeleton: mirrors the finished card (title, meta, quality chips, button) ---- */
+/* loading skeleton: mirrors the finished card (title, meta, quality chips, button) */
 .skeleton-line,
 .skeleton-chips i,
 .skeleton-btn {
@@ -1102,7 +1105,7 @@ textarea#urls::placeholder {
   white-space: nowrap;
 }
 
-/* ---- footer: supported sites as quiet tags ---- */
+/* footer: supported sites as quiet tags */
 .footer {
   display: flex;
   flex-direction: column;
@@ -1138,7 +1141,7 @@ textarea#urls::placeholder {
 }
 
 
-/* ---- phones ---- */
+/* phones */
 /* notes and errors can wrap to two lines here, so let them grow and give the text room */
 @media (max-width: 599px) {
 
@@ -1180,7 +1183,7 @@ textarea#urls::placeholder {
 }
 
 
-/* ---- footer credits ---- */
+/* footer credits */
 .credits {
   display: flex;
   flex-wrap: wrap;
@@ -1230,7 +1233,7 @@ a,
 }
 
 
-/* ---- brand mark: the app icon ---- */
+/* brand mark: the app icon */
 .mark-icon {
   display: block;
   flex: none;
@@ -1266,7 +1269,7 @@ a,
   color: inherit;
 }
 
-/* ---- language switch (English / ខ្មែរ) ----
+/* language switch (English / ខ្មែរ) ----
    A two-option segmented control: a bright pill slides under the chosen language,
    each option shows a round flag and its own name, so it's easy to spot and to read. */
 .brand-top {

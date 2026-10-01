@@ -30,7 +30,8 @@ log = logging.getLogger("rewatch.slideshow")
 _PHOTO_RE = re.compile(
     r"^https?://(?:www\.|m\.)?tiktok\.com/@([^/?#]+)/photo/(\d+)", re.IGNORECASE
 )
-# Only ever download from TikTok's own hosts (gallery-dl output is not blindly trusted).
+
+# only ever download from TikTok's own hosts (gallery-dl output is not blindly trusted).
 _CDN_SUFFIXES = ("tiktokcdn.com", "tiktokcdn-us.com", "tiktokv.com", "tiktokv.us")
 _MAX_IMAGE_BYTES = 25 * 1024 * 1024
 _MAX_AUDIO_BYTES = 40 * 1024 * 1024
@@ -46,7 +47,7 @@ def is_photo_post(url: str) -> bool:
     return bool(_PHOTO_RE.match(url or ""))
 
 
-# Links from TikTok's share button: vm.tiktok.com/ZS…/, vt.tiktok.com/ZS…/, tiktok.com/t/ZS…/
+# links from TikTok's share button: vm.tiktok.com/ZS…/, vt.tiktok.com/ZS…/, tiktok.com/t/ZS…/
 _SHORT_RE = re.compile(
     r"^https?://(?:(?:vm|vt)\.tiktok\.com/|(?:www\.)?tiktok\.com/t/)[^/?#\s]+",
     re.IGNORECASE,
