@@ -1266,46 +1266,174 @@ a,
   color: inherit;
 }
 
-/* ---- language switch (English / ខ្មែរ) ---- */
+/* ---- language switch (English / ខ្មែរ) ----
+   A two-option segmented control: a bright pill slides under the chosen language,
+   each option shows a round flag and its own name, so it's easy to spot and to read. */
 .brand-top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px 16px;
 }
 
 .lang {
-  display: inline-flex;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   flex: none;
-  gap: 2px;
-  padding: 3px;
-  background: var(--ink);
+  margin-left: auto;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--r-full);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .25);
+}
+
+/* the sliding highlight */
+.lang::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  border-radius: var(--r-full);
+  background: var(--accent-strong);
+  transition: transform .35s var(--spring);
+}
+
+.lang[data-active="km"]::before {
+  transform: translateX(100%);
 }
 
 .lang-btn {
   appearance: none;
   cursor: pointer;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  min-height: 34px;
-  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 18px;
   border: 0;
   border-radius: var(--r-full);
   background: transparent;
-  color: var(--paper-dim);
-  transition: background-color .2s var(--ease), color .2s var(--ease);
+  color: var(--paper);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color .2s var(--ease), background-color .2s var(--ease);
 }
 
-.lang-btn:hover {
-  color: var(--paper);
+.lang-btn:not(.active):hover {
+  background: rgba(143, 196, 171, .14);
 }
 
 .lang-btn.active {
-  background: var(--tonal);
-  color: var(--accent-strong);
-  font-weight: 600;
+  color: var(--ink);
+}
+
+.lang-btn:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 2px;
+}
+
+/* round flag on each option */
+.lang-btn .flag {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .22);
+  transition: transform .3s var(--spring);
+}
+
+.lang-btn.active .flag {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 1.5px rgba(14, 22, 19, .45);
+}
+
+/* Phones and small windows: keep the switch on the same row as the logo, as small as the logo
+   itself, with two round flag buttons (names stay available to screen readers and as a tooltip). */
+@media (max-width: 560px) {
+  .brand-top {
+    flex-wrap: nowrap;
+  }
+
+  .mark {
+    min-width: 0;
+  }
+
+  .lang {
+    grid-template-columns: repeat(2, 44px);
+    margin-left: 0;
+    padding: 2px;
+    box-shadow: none;
+  }
+
+  /* the highlight is a circle exactly one button wide */
+  .lang::before {
+    top: 2px;
+    bottom: 2px;
+    left: 2px;
+    width: 44px;
+  }
+
+  .lang-btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    min-height: 0;
+    padding: 0;
+    gap: 0;
+    border-radius: 50%;
+    touch-action: manipulation;
+  }
+
+  /* An invisible, larger tap area: the circle looks small but the finger has 48px+ to hit. */
+  .lang-btn::after {
+    content: "";
+    position: absolute;
+    inset: -6px 0;
+  }
+
+  .lang-btn:first-child::after {
+    left: -8px;
+  }
+
+  .lang-btn:last-child::after {
+    right: -8px;
+  }
+
+  .lang-btn .flag {
+    width: 30px;
+    height: 30px;
+  }
+
+  .lang-btn.active .flag {
+    transform: none;
+  }
+
+  .lang-btn>span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .lang::before,
+  .lang-btn .flag {
+    transition: none;
+  }
 }
 
 /* Khmer needs a little more line height so stacked marks don't collide. */

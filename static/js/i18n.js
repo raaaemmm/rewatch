@@ -88,7 +88,7 @@
       "err.series": "That's a series page, not a video. Open an episode, then copy the link from your browser's address bar. It looks like hongguoduanju.com/player/...",
 
       // friendly errors
-      "e.network": "We can'reach the server right now. Please check your internet connection and try again.",
+      "e.network": "We can't reach the server right now. Please check your internet connection and try again.",
       "e.rate": "That's a lot of requests at once. Please wait a few seconds and try again.",
       "e.queue": "The server is busy at the moment. Please try again in a minute.",
       "e.timeout": "That took longer than expected. Please try again, or choose a lower quality.",
@@ -276,6 +276,7 @@
     document.querySelectorAll("[data-i18n-html]").forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
     document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
     document.querySelectorAll("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+    document.querySelectorAll(".lang").forEach((g) => { g.dataset.active = lang; });
     document.querySelectorAll(".lang-btn").forEach((b) => {
       const on = b.dataset.lang === lang;
       b.classList.toggle("active", on);
