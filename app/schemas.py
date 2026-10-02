@@ -16,6 +16,19 @@ class FormatOption(BaseModel):
     codec: str = ""
 
 
+class PlatformInfo(BaseModel):
+    """The site a link belongs to, for the logo + name shown on a card."""
+
+    key: str  # stable id, e.g. "youtube"; "other" when we have no logo for the site
+    name: str
+    color: str = ""  # badge background (hex)
+    icon: str = ""  # /static/platforms/<key>.svg, or "" to show a letter badge
+
+
+class PlatformEntry(PlatformInfo):
+    hosts: list[str] = []  # lets the page recognise a pasted link before asking the server
+
+
 class InfoResponse(BaseModel):
     title: str = ""
     thumbnail: str = ""
@@ -24,6 +37,7 @@ class InfoResponse(BaseModel):
     formats: list[FormatOption] = []
     warning: str = ""  # non-fatal server-side problem the UI should show
     photos: int = 0  # >0 = a photo slideshow with this many photos
+    platform: PlatformInfo | None = None
 
 
 class PhotoItem(BaseModel):
@@ -89,3 +103,4 @@ class ConfigResponse(BaseModel):
     max_playlist_items: int
     file_ttl_seconds: int
     audio_bitrates: list[int] = list(AUDIO_BITRATES)
+    platforms: list[PlatformEntry] = []

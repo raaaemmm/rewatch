@@ -43,7 +43,7 @@ def test_khmer_is_really_khmer():
 
 def test_keys_used_in_code_exist():
     used = set(re.findall(r'\bt\("([\w.]+)"', APP))
-    used |= set(re.findall(r'key: "([\w.]+)"', APP))
+    used |= set(re.findall(r'key: "(\w+\.[\w.]+)"', APP))  # i18n keys always contain a dot
     used |= set(re.findall(r'\["(e\.[\w]+|note\.[\w]+)"', APP))
     used |= set(re.findall(r'"((?:e|note)\.\w+)"', APP))
     used |= set(re.findall(r'data-i18n(?:-html|-placeholder|-aria)?="([\w.]+)"', INDEX))

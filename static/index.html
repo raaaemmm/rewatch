@@ -65,7 +65,7 @@
   }
   </script>
 
-  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/style.css?v=20261002d">
 </head>
 
 <body>
@@ -87,25 +87,31 @@
         <div class="composer">
           <label class="field">
             <span class="field-label" data-i18n="links.label">Links</span>
-            <textarea id="urls" placeholder="Paste a video or music link here..." data-i18n-placeholder="links.placeholder" rows="2" autocomplete="off"
+            <textarea id="urls" placeholder="Paste a video or music link here..." data-i18n-placeholder="links.placeholder" rows="2" autocomplete="off" autocorrect="off"
               autocapitalize="off" spellcheck="false" inputmode="url"></textarea>
           </label>
           <p class="hint" data-i18n="links.hint">You can paste several links at once, separated by spaces or new lines. Playlist links open as
             a list of videos.</p>
 
           <div id="detect" class="detect" role="status" hidden>Playlist detected. All its videos will be listed.</div>
+          <div id="sites" class="plat-row" role="group" aria-label="Detected sites" data-i18n-aria="platform.row" hidden></div>
 
           <div class="controls">
             <div class="pill-group" role="group" aria-label="Format" data-i18n-aria="format.aria">
               <button class="pill active" data-format="video" data-action="set-format" data-i18n="format.video">Video</button>
               <button class="pill" data-format="audio" data-action="set-format" data-i18n="format.audio">Audio</button>
             </div>
-            <button class="fetch-btn" id="goBtn" data-action="go" data-i18n="btn.get">Get</button>
+            <button class="fetch-btn" id="goBtn" data-action="go"><svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><span data-i18n="btn.get">Get</span></button>
           </div>
           <div id="batch" class="batch" hidden>
             <div class="batch-info"><b id="batch-title"></b><span id="batch-sub"></span></div>
             <div class="bar" id="batch-track" hidden><i id="batch-bar"></i></div>
             <button class="dl-all-btn" id="dlAllBtn" data-action="dl-all">Download all</button>
+            <p id="batch-hint" class="batch-hint" hidden></p>
+            <div id="batch-actions" class="batch-actions" hidden>
+              <button class="icon-btn" id="retryFailedBtn" type="button" data-action="retry-failed" hidden></button>
+              <button class="icon-btn" id="cancelAllBtn" type="button" data-action="cancel-all" hidden></button>
+            </div>
           </div>
           <div id="form-error" class="banner-error" role="alert" hidden></div>
         </div>
@@ -162,8 +168,8 @@
     </footer>
   </main>
 
-  <script src="/static/js/i18n.js"></script>
-  <script src="/static/js/app.js"></script>
+  <script src="/static/js/i18n.js?v=20261002d"></script>
+  <script src="/static/js/app.js?v=20261002d"></script>
 </body>
 
 </html>

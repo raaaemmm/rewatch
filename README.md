@@ -15,7 +15,7 @@ A self-hosted downloader for YouTube, TikTok, Instagram, X, Reddit and 1000+ mor
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.121-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-8FC4AB)](https://github.com/yt-dlp/yt-dlp)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](#-quick-start)
-[![Tests](https://img.shields.io/badge/tests-59%20passing-3FB68B)](#-tests)
+[![Tests](https://img.shields.io/badge/tests-79%20passing-3FB68B)](#-tests)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
 [Quick start](#-quick-start) · [Features](#-features) · [Configuration](#-configuration) · [Sharing](#-share-it-with-a-cloudflare-tunnel) · [API](#-api) · [Security](#-security)
@@ -86,7 +86,8 @@ know what you're saving.
 
 ### 🧹 Tidy by default
 Finished files are deleted from the server after 30 minutes. No accounts, no tracking,
-no third-party requests.
+no analytics. Logos are served by Rewatch itself; only thumbnails load from each
+site's own CDN.
 
 </td>
 <td valign="top">
@@ -94,6 +95,32 @@ no third-party requests.
 ### 🌏 English and ខ្មែរ
 Switch language with the button at the top. Everything is translated, including error
 messages, and your choice is remembered. First visits follow the browser language.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top">
+
+### 🏷️ Site detection
+Every card shows the site's logo and name (YouTube, Facebook, TikTok, X, Instagram and
+more), and a row under the link box shows which sites you pasted before you press Get.
+Unknown sites get a letter badge with their domain.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top">
+
+### 📤 Share the file
+Tap **Share** on a card to send the video or audio file itself through your phone's share sheet (Telegram, WhatsApp, Messages and more). Rewatch downloads it first, then opens the sheet. Browsers only allow this over **HTTPS** (a Cloudflare tunnel works) and mostly on phones; elsewhere the button explains this and **Save file** still works.
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top">
+
+### 🛡️ Downloads you can trust
+Reloading the page re-attaches to downloads that are still running. While something downloads, pull-to-refresh is switched off, the screen stays awake (over HTTPS), the tab title shows progress (`(42%) Rewatch`), and you get a short buzz or a notification when it finishes. Batches have **Cancel all** and **Retry failed**, and each finished card shows how long the file stays available.
 
 </td>
 </tr>
@@ -259,6 +286,16 @@ and static folders).
 
 <br>
 
+## 🏷️ Adding a site logo
+
+Sites are listed once, in [`app/services/platforms.py`](app/services/platforms.py): name,
+domains, badge colour and the yt-dlp extractor name. The page gets the list from
+`/api/v1/config`, so nothing else needs editing. Drop a white-glyph `<key>.svg` into
+`static/platforms/` (24x24 viewBox), or set `icon=False` to use a letter badge. The tests
+fail if a listed logo is missing or a logo file isn't listed.
+
+<br>
+
 ## 🌏 Adding a language
 
 All text lives in [`static/js/i18n.js`](static/js/i18n.js), in one block per language.
@@ -290,8 +327,8 @@ There are no public API docs. These are the endpoints the bundled page uses:
 
 | Method | Path | Notes |
 |---|---|---|
-| `GET` | `/api/v1/config` | Page limits |
-| `POST` | `/api/v1/info` | `{url}` returns title, thumbnail, duration, uploader and available qualities |
+| `GET` | `/api/v1/config` | Page limits and the list of known sites (name, logo, colour, hosts) |
+| `POST` | `/api/v1/info` | `{url}` returns title, thumbnail, duration, uploader, `platform` (`{key, name, color, icon}`) and available qualities |
 | `POST` | `/api/v1/playlist` | `{url}` returns the entry URLs (up to 50) |
 | `POST` | `/api/v1/jobs` | `{url, format: "video"\|"audio", height?, audio_bitrate?, title?}` returns `{job_id, token}` |
 | `GET` | `/api/v1/jobs/{id}?token=` | Current status |
@@ -329,8 +366,8 @@ app/
   schemas.py         request and response models
   routers/           media.py (info, playlist), jobs.py (jobs, SSE, file), deps.py
   services/          extractor.py (yt-dlp), slideshow.py (TikTok photos),
-                     jobs.py (queue + store), cleanup.py
-static/              index.html, js/ (app.js, i18n.js), css/, fonts/, icons/
+                     platforms.py (site detection), jobs.py (queue + store), cleanup.py
+static/              index.html, js/ (app.js, i18n.js), css/, fonts/, icons/, platforms/
 tests/               pytest suite
 start_server.py      launcher for running without Docker
 Dockerfile, docker-compose.yml, docker-entrypoint.sh
@@ -345,7 +382,7 @@ pip install -r requirements.txt pytest httpx
 python -m pytest -q
 ```
 
-The suite has 59 tests. The download tests need ffmpeg and are skipped if it isn't
+The suite has 79 tests. The download tests need ffmpeg and are skipped if it isn't
 installed.
 
 <br>
@@ -354,6 +391,9 @@ installed.
 
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) does the actual downloading.
 - [gallery-dl](https://github.com/mikf/gallery-dl) reads TikTok photo posts.
+- [Simple Icons](https://simpleicons.org) (CC0) provides the site logos in
+  `static/platforms/`. The logos are trademarks of their owners and are used only to
+  identify the site a link belongs to.
 - [averygan/reclip](https://github.com/averygan/reclip) (MIT) is the project Rewatch is
   rebuilt from.
 - [Kantumruy Pro](https://github.com/anagata-design/kantumruy-pro) by Sovichet Tep is the

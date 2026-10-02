@@ -31,7 +31,7 @@ def test_no_inline_style_attributes():
 
     static = Path(__file__).resolve().parent.parent / "static"
     for f in (static / "index.html", static / "js" / "app.js"):
-        assert 'style="' not in f.read_text(), f.name
+        assert 'style="' not in f.read_text(encoding="utf-8"), f.name
 
 
 def test_rejects_option_injection_and_private(make_client):

@@ -15,6 +15,7 @@ from .config import get_settings
 from .routers import jobs as jobs_router
 from .routers import media as media_router
 from .schemas import ConfigResponse
+from .services import platforms
 from .services.extractor import youtube_prereq_problems
 from .services.cleanup import cleanup_loop, wipe_orphans
 from .services.jobs import JobManager, JobStore
@@ -104,6 +105,7 @@ def create_app() -> FastAPI:
             max_urls_per_batch=settings.max_urls_per_batch,
             max_playlist_items=settings.max_playlist_items,
             file_ttl_seconds=settings.file_ttl_seconds,
+            platforms=platforms.catalog(),
         )
 
     @app.get("/healthz", include_in_schema=False)

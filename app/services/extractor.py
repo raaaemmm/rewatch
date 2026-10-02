@@ -17,6 +17,7 @@ from yt_dlp.utils import DownloadError, YoutubeDLError
 from ..config import Settings
 from ..schemas import FormatOption, InfoResponse, PlaylistResponse
 from ..security import safe_filename
+from . import platforms
 
 _ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
@@ -190,6 +191,11 @@ def fetch_info(url: str, settings: Settings) -> InfoResponse:
 
     return InfoResponse(
         warning=warning,
+        platform=platforms.detect(
+            info.get("webpage_url") or url,
+            info.get("extractor_key"),
+            info.get("extractor"),
+        ),
         title=info.get("title") or "",
         thumbnail=thumb,
         duration=info.get("duration"),
@@ -225,7 +231,9 @@ def fetch_playlist(url: str, settings: Settings) -> PlaylistResponse:
             urls.append(u)
     truncated = len(urls) > settings.max_playlist_items
     return PlaylistResponse(
-        urls=urls[: settings.max_playlist_items], truncated=truncated
+        urls=urls[: settings.max_playlist_items],
+        truncated=truncated,
+        title=str(info.get("title") or "")[:120],
     )
 
 

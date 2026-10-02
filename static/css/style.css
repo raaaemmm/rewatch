@@ -193,17 +193,27 @@ textarea#urls {
   display: block;
   width: 100%;
   min-height: 56px;
-  max-height: 220px;
+  max-height: 260px;
   resize: none;
   field-sizing: content;
   overflow-y: auto;
+  scrollbar-width: none;
+  /* grows with the links; no scrollbar track beside the text */
   background: transparent;
   border: 0;
   outline: 0;
-  padding: 6px 0;
+  padding: 8px 0;
+  scroll-padding: 8px 0;
   color: var(--paper);
   font: inherit;
   font-size: 16px;
+  /* soft fade at the top/bottom edge, so scrolled text doesn't look sliced under the label */
+  -webkit-mask-image: linear-gradient(transparent 0, #000 8px, #000 calc(100% - 8px), transparent 100%);
+  mask-image: linear-gradient(transparent 0, #000 8px, #000 calc(100% - 8px), transparent 100%);
+}
+
+textarea#urls::-webkit-scrollbar {
+  display: none;
 }
 
 textarea#urls::placeholder {
@@ -463,6 +473,10 @@ textarea#urls::placeholder {
 }
 
 .card-dl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-height: 44px;
   padding: 0 24px;
   background: var(--accent);
@@ -518,6 +532,34 @@ textarea#urls::placeholder {
 
 .icon-btn:hover {
   color: var(--paper);
+}
+
+.btn-ico {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.icon-btn .btn-ico,
+.q-chip .btn-ico {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-btn .reel-spin,
+.dl-all-btn .reel-spin {
+  border-color: color-mix(in srgb, currentColor 30%, transparent);
+  border-top-color: currentColor;
+}
+
+.icon-btn:disabled {
+  cursor: progress;
+  opacity: .7;
+}
+
+.icon-btn.share-ready {
+  background: var(--tonal);
+  color: var(--accent-strong);
 }
 
 .card-progress {
@@ -579,6 +621,10 @@ textarea#urls::placeholder {
 }
 
 .dl-all-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   min-height: 48px;
   padding: 0 28px;
   background: var(--tonal);
@@ -652,6 +698,15 @@ textarea#urls::placeholder {
 @container (min-width: 640px) {
   .steps {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* wide layout: number on top, text below, so each card is only as tall as its content */
+  .empty .steps li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 18px 18px;
+    line-height: 1.5;
   }
 }
 
@@ -1011,15 +1066,8 @@ textarea#urls::placeholder {
   .pane-results:has(.cards:empty) .empty {
     flex: 1;
     max-width: none;
-    justify-content: space-between;
-  }
-
-  .pane-results:has(.cards:empty) .steps {
-    flex: 1;
-  }
-
-  .pane-results:has(.cards:empty) .steps li {
-    align-items: center;
+    justify-content: center;
+    gap: 24px;
   }
 }
 
@@ -1053,14 +1101,55 @@ textarea#urls::placeholder {
   font-size: 13px;
 }
 
+/* notes and errors can run to several lines: let them wrap with even padding, and show a spinner while a playlist is being read */
+.detect,
+.banner-error {
+  gap: 10px;
+  padding: 12px 16px;
+  line-height: 1.5;
+}
+
+.detect.busy::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--accent-strong);
+  animation: spin .8s linear infinite;
+}
+
 
 /* loading skeleton: mirrors the finished card (title, meta, quality chips, button) */
 .skeleton-line,
 .skeleton-chips i,
-.skeleton-btn {
+.skeleton-btn,
+.skeleton-plat i {
   background: linear-gradient(100deg, var(--surface) 30%, var(--border-soft) 50%, var(--surface) 70%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* the site badge (logo + name) is a skeleton too until the server confirms the platform */
+.skeleton-plat {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeleton-plat-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-full);
+}
+
+.skeleton-plat-name {
+  display: block;
+  width: 72px;
+  height: 12px;
+  border-radius: var(--r-full);
 }
 
 .skeleton-line.title {
@@ -1147,9 +1236,9 @@ textarea#urls::placeholder {
 
   .detect,
   .banner-error {
-    padding: 9px 16px;
+    padding: 12px 16px;
     border-radius: var(--r-md);
-    line-height: 1.45;
+    line-height: 1.5;
   }
 
   /* nothing to show yet: don't leave a gap above the footer */
@@ -1269,9 +1358,9 @@ a,
   color: inherit;
 }
 
-/* language switch (English / ខ្មែរ) ----
-   A two-option segmented control: a bright pill slides under the chosen language,
-   each option shows a round flag and its own name, so it's easy to spot and to read. */
+/* language switch (English / ខ្មែរ)
+  A two-option segmented control: a bright pill slides under the chosen language,
+  each option shows a round flag and its own name, so it's easy to spot and to read. */
 .brand-top {
   display: flex;
   flex-wrap: wrap;
@@ -1361,7 +1450,7 @@ a,
 }
 
 /* Phones and small windows: keep the switch on the same row as the logo, as small as the logo
-   itself, with two round flag buttons (names stay available to screen readers and as a tooltip). */
+  itself, with two round flag buttons (names stay available to screen readers and as a tooltip). */
 @media (max-width: 560px) {
   .brand-top {
     flex-wrap: nowrap;
@@ -1446,4 +1535,192 @@ html[lang="km"] body {
 
 html[lang="km"] .card-title {
   line-height: 1.6;
+}
+
+/* detected site: logo tile + name (cards, and the row under the link box) */
+.plat {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--paper-dim);
+}
+
+.plat-icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-full);
+  background: var(--border);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08);
+}
+
+.plat-icon img {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.plat-letter {
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.plat-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 0;
+}
+
+.plat-row[hidden] {
+  display: none;
+}
+
+.plat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 12px 4px 5px;
+  border-radius: var(--r-full);
+  background: var(--c-low);
+  border: 1px solid var(--border-soft);
+}
+
+.plat-chip .plat {
+  color: var(--paper);
+}
+
+/* item count per site: a small badge on the chip */
+.plat-count {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--r-full);
+  background: var(--tonal);
+  color: var(--accent-strong);
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* many sites pasted at once: logos only, so the row stays on one or two lines instead of pushing the field down */
+.plat-row.compact {
+  gap: 6px;
+}
+
+.plat-row.compact {
+  padding-top: 6px;
+}
+
+.plat-row.compact .plat-chip {
+  position: relative;
+  padding: 4px;
+}
+
+/* logos only: the count sits on the corner of the logo like a notification badge */
+.plat-row.compact .plat-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 10.5px;
+  background: var(--accent);
+  color: var(--ink);
+  box-shadow: 0 0 0 2px var(--c-high);
+}
+
+.plat-row.compact .plat-name {
+  display: none;
+}
+
+/* empty state: the welcome panel hugs its content instead of stretching to the height of the Links box,
+  so pasting many links no longer leaves a big blank area above and below it */
+@media (min-width: 840px) {
+  .pane-results:has(.cards:empty) {
+    align-self: start;
+  }
+
+  .pane-results:has(.cards:empty) .empty {
+    flex: none;
+    padding: 32px;
+  }
+}
+
+/* while a download is running, pulling the page down must not reload it (class set from app.js) */
+html.no-pull,
+html.no-pull body {
+  overscroll-behavior-y: none;
+}
+
+/* batch extras: hint, Retry failed, Cancel all */
+.batch-hint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--paper-dim);
+}
+
+.batch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.batch-actions .icon-btn {
+  flex: 1 1 auto;
+  justify-content: center;
+  background: var(--surface);
+}
+
+.icon-btn[hidden],
+.batch-hint[hidden],
+.batch-actions[hidden] {
+  display: none;
+}
+
+@media (min-width: 600px) and (max-width: 839px) {
+
+  .batch-hint,
+  .batch-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+/* the Video / Audio switch is locked while a batch is being started */
+.pill:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+/* how long a finished file stays available */
+.card-expiry {
+  order: 4;
+  flex: 1 1 100%;
+  font-size: 12.5px;
+  color: var(--paper-dim);
+}
+
+.card-expiry.soon {
+  color: var(--clay-strong);
 }

@@ -23,6 +23,7 @@ from urllib.parse import urlsplit
 from ..config import Settings
 from ..schemas import FormatOption, InfoResponse, PhotoItem, PlaylistResponse
 from ..security import safe_filename
+from . import platforms
 from .extractor import DownloadCancelled, ExtractionError, _find_binary
 
 log = logging.getLogger("rewatch.slideshow")
@@ -194,6 +195,7 @@ def fetch_info(url: str, settings: Settings) -> InfoResponse:
         duration=round(n * SECONDS_PER_PHOTO, 1),
         uploader=f"@{handle}",
         photos=n,
+        platform=platforms.detect(url),
         formats=[
             FormatOption(height=h, label=f"{h}p", codec="h264") for h in _QUALITIES
         ],
