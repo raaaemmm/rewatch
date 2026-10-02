@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS base
+FROM python:3.12-slim
 
 # ffmpeg is required by yt-dlp for merging/transcoding; curl is used by the
 # healthcheck and to keep yt-dlp's extractors current at startup.

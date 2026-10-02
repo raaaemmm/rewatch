@@ -16,8 +16,8 @@ import tempfile
 import threading
 import time
 import urllib.request
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 from urllib.parse import urlsplit
 
 from ..config import Settings
@@ -108,10 +108,16 @@ def _image_ext(url: str) -> str:
     return suffix if suffix in (".jpg", ".png", ".webp", ".avif", ".heic") else ".jpg"
 
 
+def _match_photo(url: str) -> re.Match[str]:
+    m = _PHOTO_RE.match(url or "")
+    if not m:
+        raise ExtractionError("This is not a TikTok photo post")
+    return m
+
+
 def _clean_url(url: str) -> str:
-    m = _PHOTO_RE.match(url)
-    assert m
-    return f"https://www.tiktok.com/@{m.group(1)}/photo/{m.group(2)}"
+    handle, post_id = _match_photo(url).groups()
+    return f"https://www.tiktok.com/@{handle}/photo/{post_id}"
 
 
 def _cdn_ok(url: str) -> bool:
@@ -186,8 +192,8 @@ def _list_media_uncached(url: str, settings: Settings) -> tuple[list[str], str |
 
 
 def fetch_info(url: str, settings: Settings) -> InfoResponse:
-    images, audio = list_media(url, settings)
-    handle = _PHOTO_RE.match(url).group(1)  # type: ignore[union-attr]
+    images, _ = list_media(url, settings)
+    handle = _match_photo(url).group(1)
     n = len(images)
     return InfoResponse(
         title=f"@{handle} slideshow ({n} photos)",
@@ -205,7 +211,7 @@ def fetch_info(url: str, settings: Settings) -> InfoResponse:
 def photo_entries(url: str, settings: Settings) -> PlaylistResponse:
     """Every photo of the post as its own entry (like a playlist), for 'Save as photos'."""
     images, _ = list_media(url, settings)
-    handle = _PHOTO_RE.match(url).group(1)  # type: ignore[union-attr]
+    handle = _match_photo(url).group(1)
     base = _clean_url(url)
     n = len(images)
     urls = [f"{base}#image={i}" for i in range(1, n + 1)]

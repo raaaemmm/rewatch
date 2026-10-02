@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 from fastapi.responses import FileResponse, StreamingResponse
@@ -43,12 +43,12 @@ async def create_job(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     try:
         job_id = mgr.submit(body, url)
-    except QueueFull:
+    except QueueFull as exc:
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,
             "Download queue is full — try again shortly",
             headers={"Retry-After": "30"},
-        )
+        ) from exc
     return JobCreated(job_id=job_id, token=sign_job(job_id, settings))
 
 

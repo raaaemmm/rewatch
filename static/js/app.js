@@ -20,8 +20,7 @@ const INFO_CONCURRENCY = 3; // link lookups in flight at once (the server rate-l
 
 const $ = (id) => document.getElementById(id);
 
-// button icons
-// small line icons shown in front of each button label (same 24px grid and 2px stroke as the rest).
+// Line icons shown in front of button labels (24px grid, 2px stroke).
 const ICONS = {
   get: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
   download: '<path d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 19h14"/>',
@@ -37,11 +36,10 @@ function ico(name) {
   return `<svg class="btn-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[name]}</svg>`;
 }
 
-// icon + label for a button's inner HTML; busy swaps the icon for the spinner.
+// Icon + label for a button's inner HTML; `busy` swaps the icon for a spinner.
 function lbl(name, text, busy = false) {
   return `${busy ? '<span class="reel-spin"></span>' : ico(name)}<span>${esc(text)}</span>`;
 }
-
 
 async function loadConfig() {
   try {
@@ -66,9 +64,8 @@ function setFormat(btn) {
   cardData.forEach((_, i) => renderCard(i));
 }
 
-// CSP (script-src 'self') blocks inline onclick="" attributes, so every
-// action in generated card HTML is wired through data-action attributes and
-// this one delegated listener instead of inline handlers.
+// The CSP blocks inline onclick="" handlers, so generated HTML uses data-action
+// attributes and this single delegated listener instead.
 document.addEventListener("click", (e) => {
   const el = e.target.closest("[data-action]");
   if (!el) return;
@@ -95,7 +92,7 @@ function parseUrls(text) {
   return urls;
 }
 
-// human-friendly durations: "18 sec", "3 min 25 sec", "1 hr 2 min" (or the Khmer equivalents).
+// Human-friendly durations: "18 sec", "3 min 25 sec", "1 hr 2 min" (or the Khmer equivalents).
 function fmtDur(s) {
   if (!s && s !== 0) return "";
   const total = Math.round(s);
@@ -109,16 +106,15 @@ function fmtDur(s) {
   return parts.join(" ");
 }
 
-// escapes text for HTML bodies AND double/single-quoted attribute values.
+// Escapes text for HTML bodies and quoted attribute values.
 function esc(s) {
   const d = document.createElement("div");
   d.textContent = s ?? "";
   return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
-// site detection (logo + name)
-// the server's answer (card.platform, from /info) wins; this guess from the link's host
-// is what shows while a card is still loading, on error cards, and in the row under the box.
+// Site detection (logo + name). The server's answer (card.platform, from /info) wins;
+// this guess from the link's host covers loading cards, error cards and the chip row.
 function detectPlatform(url) {
   let host = "";
   try {
@@ -141,14 +137,14 @@ function platformBadge(p) {
   return `<span class="plat" title="${esc(t("platform.aria", { name: p.name }))}"><span class="plat-icon" data-bg="${esc(bg)}">${glyph}</span><span class="plat-name">${esc(p.name)}</span></span>`;
 }
 
-// the CSP forbids inline style attributes; setting styles via the CSSOM is allowed.
+// The CSP forbids inline style attributes, so dynamic styles are set through the CSSOM.
 function applyDynamicStyles(root) {
   root.querySelectorAll("[data-pct]").forEach((n) => { n.style.width = `${n.dataset.pct}%`; });
   root.querySelectorAll("[data-bg]").forEach((n) => { if (n.dataset.bg) n.style.background = n.dataset.bg; });
 }
 
-// one chip per distinct site among the pasted links, with a count when a site repeats.
-// sitesSource: the final list after playlists are expanded (set by go()); null = count the raw textarea.
+// One chip per distinct site among the pasted links, with a count when a site repeats.
+// sitesSource is the list after playlists are expanded (set by go()); null = the raw textarea.
 let sitesSource = null;
 function renderSites() {
   const box = $("sites");
@@ -167,11 +163,10 @@ function renderSites() {
   applyDynamicStyles(box);
 }
 
-// turns server / yt-dlp error text into plain-language advice: what happened and what to do next.
+// Turns server / yt-dlp error text into plain-language advice (keys live in i18n.js).
 function friendlyError(err) {
   const e = String(err || "");
   const rules = [
-
     // connection and server load
     [/failed to fetch|networkerror|load failed|network/i, "e.network"],
     [/too many requests|slow down|HTTP Error 429/i, "e.rate"],
@@ -235,8 +230,8 @@ function detailText(data, fallback) {
   return typeof data?.detail === "string" ? data.detail : fallback;
 }
 
-// the note under the field: a playlist hint, or a heads-up when we trimmed the list.
-let noteState = null; // { key, params } so the note can be re-translated when the language changes
+// The note under the field: a playlist hint, or a heads-up when the list was trimmed.
+let noteState = null; // { key, params, busy }, kept so the note can be re-translated on a language change
 function setNote(key, params, busy = false) {
   noteState = key ? { key, params, busy } : null;
   const n = $("detect");
@@ -245,14 +240,14 @@ function setNote(key, params, busy = false) {
   n.hidden = !key;
 }
 
-// playlist heads-up: tell people what Get will do BEFORE they press it
+// Playlist heads-up: say what Get will do before it is pressed.
 const isPlaylistUrl = (u) => /[?&]list=/.test(u);
 
 function playlistHintFor(text) {
   const pl = parseUrls(text).filter(isPlaylistUrl);
   if (!pl.length) return null;
   if (pl.length > 1) return ["note.playlistMany", { p: pl.length, m: maxUrls }];
-  // watch?v=...&list=... is ONE video inside a playlist, but Get opens the whole playlist: say so.
+  // watch?v=...&list=... is one video inside a playlist, but Get opens the whole playlist.
   return [/[?&]v=/.test(pl[0]) ? "note.playlistVideo" : "note.playlist", { m: maxUrls }];
 }
 
@@ -267,25 +262,25 @@ function showFormError(msg) {
   box.hidden = false;
 }
 
-// Enter = Get only with a mouse and keyboard. On a phone there is no Shift key, so Enter must stay a
-// line break (that is how several links are separated); Ctrl/Cmd+Enter submits everywhere.
+// Enter submits only with a mouse and keyboard. On a phone Enter stays a line break (it separates
+// several links); Ctrl/Cmd+Enter submits everywhere.
 const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
 $("urls").addEventListener("keydown", (e) => {
-  if (e.key !== "Enter" || e.isComposing) return; // isComposing: Enter confirms an IME (e.g. Khmer) word
+  if (e.key !== "Enter" || e.isComposing) return; // Enter confirms an IME (e.g. Khmer) word
   if ((finePointer.matches && !e.shiftKey) || e.ctrlKey || e.metaKey) {
     e.preventDefault();
     go();
   }
 });
 
-// phones: the on-screen keyboard shows "return", and the field + Get button are kept above it.
+// Phones: keep the field and Get button above the on-screen keyboard.
 if (!finePointer.matches) {
   $("urls").setAttribute("enterkeyhint", "enter");
   const keepVisible = () => {
     if (document.activeElement === $("urls")) $("goBtn").scrollIntoView({ block: "nearest", behavior: "smooth" });
   };
   $("urls").addEventListener("focus", () => setTimeout(keepVisible, 300));
-  window.visualViewport?.addEventListener("resize", keepVisible); // the keyboard opening/closing resizes it
+  window.visualViewport?.addEventListener("resize", keepVisible); // fires when the keyboard opens/closes
 }
 
 async function go() {
@@ -306,7 +301,7 @@ async function go() {
     return;
   }
 
-  // hongguo series pages list many episodes but aren't videos themselves. Ask for a single episode link.
+  // Hongguo series pages list many episodes but are not videos themselves.
   const isHongguoSeries = (u) => /^https?:\/\/([^/]+\.)?hongguoduanju\.com\/detail/i.test(u);
   if (urls.some(isHongguoSeries)) {
     urls = urls.filter((u) => !isHongguoSeries(u));
@@ -328,7 +323,7 @@ async function go() {
   batchKind = "links";
   fetching = true;
 
-  // show a skeleton card for every pasted link straight away, so nothing looks missing while it loads.
+  // A skeleton card for every pasted link, so nothing looks missing while it loads.
   const showSkeletons = (list) => {
     container.innerHTML = "";
     cardData = list.map((url) => ({ url, status: "loading" }));
@@ -338,7 +333,7 @@ async function go() {
   };
   showSkeletons(urls);
 
-  // expand any playlist URLs into individual entries (the skeletons stay up meanwhile).
+  // Expand playlist URLs into individual entries (the skeletons stay up meanwhile).
   let expanded = false;
   const origCount = urls.length;
   const listTotal = urls.filter(isPlaylistUrl).length;
@@ -368,10 +363,10 @@ async function go() {
       }
     }
   }
-  // "N videos in this playlist" is only true when the playlist was the only thing pasted.
+  // "N videos in this playlist" is only true when the playlist was the only link pasted.
   batchKind = origCount === 1 && opened === 1 && urls.length > 1 ? "playlist" : "links";
 
-  // tell the user what just happened (the trim note below wins if we also had to cut the list).
+  // Say what just happened (the trim note below wins if the list also had to be cut).
   if (failedLists) setNote("note.playlistFailed");
   else if (cutAt) setNote("note.playlistCut", { n: cutAt });
   else if (opened) setNote(opened > 1 ? "note.expandedMany" : "note.expanded", { n: added, p: opened });
@@ -383,10 +378,10 @@ async function go() {
     expanded = true;
   }
   if (expanded) showSkeletons(urls);
-  sitesSource = urls.slice(); // badges now count every entry, not the one playlist URL
+  sitesSource = urls.slice(); // chips now count every entry, not the one playlist URL
   renderSites();
 
-  // read the details a few at a time: every card is already on screen as a skeleton and fills in as its info arrives.
+  // Read details a few at a time; each skeleton fills in as its info arrives.
   let next = 0;
   const worker = async () => {
     while (next < urls.length) await loadInfo(next++);
@@ -402,7 +397,7 @@ async function go() {
 // TikTok photo posts (/@user/photo/<id>) can be saved as one video or as separate images.
 const PHOTO_POST = /^https?:\/\/(www\.|m\.)?tiktok\.com\/@[^/?#]+\/photo\/\d+/i;
 
-// "Save as photos": swaps the slideshow card for one card per photo, like a playlist.
+// "Save as photos": replaces the slideshow card with one card per photo.
 async function splitPhotos(idx) {
   const c = cardData[idx];
   $("form-error").hidden = true;
@@ -440,7 +435,7 @@ async function splitPhotos(idx) {
   }
 }
 
-// reads one link's details. Also used by the "Try again" button on a failed card.
+// Reads one link's details. Also used by the "Try again" button on a failed card.
 async function loadInfo(idx) {
   const url = cardData[idx].url;
   cardData[idx] = { url, status: "loading" };
@@ -476,7 +471,7 @@ async function loadInfo(idx) {
   renderCard(idx);
 }
 
-// friendly quality names: 4K / 2K / Full HD / HD / SD instead of raw pixel heights.
+// Friendly quality names (4K / 2K / Full HD / HD / SD) instead of raw pixel heights.
 function qualityName(height) {
   if (height >= 4320) return "8K";
   if (height >= 2160) return "4K";
@@ -487,7 +482,7 @@ function qualityName(height) {
   return t("q.low");
 }
 
-// if two resolutions land in the same bucket (e.g. 540p and 480p), keep the pixel height so chips stay distinct.
+// If two resolutions share a bucket (e.g. 540p and 480p), add the pixel height to tell them apart.
 function videoChipLabels(formats) {
   const names = formats.map((f) => qualityName(f.height));
   return formats.map((f, i) => (names.filter((n) => n === names[i]).length > 1 ? `${names[i]} · ${f.height}p` : names[i]));
@@ -549,8 +544,7 @@ function renderCard(idx) {
   if (isAudio && !c.thumbnail) {
     thumbHtml = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" class="thumb-audio"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
   } else if (c.thumbnail) {
-
-    // audio keeps the cover art and adds a small music-note badge so it's clear you're saving sound only.
+    // Audio keeps the cover art and adds a music-note badge.
     const audioBadge = isAudio ? `<span class="thumb-badge" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>` : "";
     thumbHtml = `${audioBadge}<img src="${esc(c.thumbnail)}" alt="" loading="lazy"${c.boxed ? ' class="boxed"' : ""}>`;
   } else {
@@ -559,7 +553,7 @@ function renderCard(idx) {
 
   let qualityChips = "";
 
-  // show chips even for a single format so the resolution you'll get is always visible.
+  // Chips are shown even for a single format so the resolution is always visible.
   if (!isAudio && c.formats?.length > 0 && c.status === "ready") {
     const labels = videoChipLabels(c.formats);
     qualityChips = c.formats
@@ -614,10 +608,9 @@ function renderCard(idx) {
   updateBatch();
 }
 
-// share the file
-// Share sends the downloaded FILE itself (not a link) through the phone's own share sheet.
-// Browsers only allow that on secure pages (https or localhost), and only from a fresh tap, so
-// the file is fetched into memory first and the share happens on the tap that follows.
+// Share sends the downloaded file itself (not a link) through the system share sheet.
+// Browsers only allow that on secure pages and from a fresh tap, so the file is fetched
+// into memory first and the share happens on the tap that follows.
 const MAX_SHARE_BYTES = 300 * 1024 * 1024;
 
 function canShareFiles() {
@@ -634,7 +627,7 @@ function shareButton(c, idx) {
   return `<button class="icon-btn${c.shareState === "ready" ? " share-ready" : ""}" data-action="share-card" data-idx="${idx}"${preparing ? " disabled" : ""}>${lbl("share", label, preparing)}</button>`;
 }
 
-// a finished download: save it, or (if the person chose Share) get it ready to share.
+// A finished download: save it, or prepare it for sharing if Share was chosen.
 function finishCard(idx) {
   const c = cardData[idx];
   if (c.intent === "share") {
@@ -669,7 +662,7 @@ async function prepareShare(idx) {
     }
     c.shareState = "ready";
     renderCard(idx);
-    await sendShare(idx, true); // may be refused (the tap was a while ago); the Share file button then waits for a tap
+    await sendShare(idx, true); // may be refused (the tap was a while ago); the button then waits for a tap
   } catch {
     c.shareState = null;
     c.shareFile = null;
@@ -703,9 +696,8 @@ function shareCard(idx) {
   dlCard(idx);
 }
 
-// keeping a download safe and visible
-// One place decides "is something running?" and keeps everything that depends on it in step:
-// pull-to-refresh lock, screen wake lock, tab title, reload recovery and the finish buzz.
+// One place decides "is something running?" and keeps dependents in step: pull-to-refresh
+// lock, screen wake lock, tab title, reload recovery and the finish buzz.
 const runCards = new Set(); // cards started since the last time everything was idle
 let wasBusy = false;
 let wakeLock = null;
@@ -727,7 +719,7 @@ function syncBusy() {
   wasBusy = busy;
 }
 
-// the screen stays on while downloading (a sleeping phone pauses the page). Needs https; ignored elsewhere.
+// Keeps the screen on while downloading (a sleeping phone pauses the page). Needs https.
 async function setWake(on) {
   if (!navigator.wakeLock || wakeBusy) return;
   wakeBusy = true;
@@ -747,7 +739,7 @@ async function setWake(on) {
   if (!isBusy() && wakeLock) setWake(false);
 }
 
-// "(42%) Rewatch" while downloading, so progress is visible from another tab.
+// "(42%) Rewatch" while downloading, so progress shows from another tab.
 function updateTitle(busy) {
   if (busy) {
     const list = [...runCards].filter((c) => c.status !== "error" && c.status !== "cancelled");
@@ -762,7 +754,7 @@ function updateTitle(busy) {
   }
 }
 
-// everything finished: a short buzz on phones, and a tab mark + notification if the person is elsewhere.
+// Everything finished: a short buzz on phones, plus a tab mark and notification if the tab is hidden.
 function runFinished() {
   const done = [...runCards].filter((c) => c.status === "done").length;
   runCards.clear();
@@ -777,7 +769,7 @@ function runFinished() {
   } catch { /* some browsers only allow notifications from a service worker */ }
 }
 
-// asked once, on the first download tap (browsers only allow the question after a tap), and only on https.
+// Asked once, on the first download tap (browsers require a tap), and only on https.
 function askNotify() {
   try {
     if (!("Notification" in window) || !window.isSecureContext || Notification.permission !== "default") return;
@@ -794,7 +786,7 @@ document.addEventListener("visibilitychange", () => {
   updateTitle(isBusy());
 });
 
-// survive a reload: running jobs live on the server, so the page just re-attaches
+// Survive a reload: running jobs live on the server, so the page just re-attaches.
 const SAVE_FIELDS = ["url", "status", "title", "thumbnail", "duration", "uploader", "formats", "warning", "photos", "platform", "selectedHeight", "selectedBitrate", "kind", "boxed", "jobId", "token", "filename", "progress", "speed", "eta", "error", "doneAt"];
 
 function saveSession(active) {
@@ -804,7 +796,7 @@ function saveSession(active) {
     try { sessionStorage.removeItem(SESSION_KEY); } catch { /* ignore */ }
     return;
   }
-  if (!saveTimer) saveTimer = setTimeout(flushSession, 800); // progress ticks are frequent: write at most every 0.8 s
+  if (!saveTimer) saveTimer = setTimeout(flushSession, 800); // throttle: progress ticks are frequent
 }
 
 function flushSession() {
@@ -826,7 +818,7 @@ function restoreSession() {
   batchTotal = snap.batchTotal || cardData.length;
   document.querySelectorAll(".pill").forEach((b) => b.classList.toggle("active", b.dataset.format === currentFormat));
   cardData.forEach((c) => {
-    // a card caught between the tap and the server's answer has no job to re-attach to: let it be started again
+    // No job id yet means there is nothing to re-attach to: let it be started again.
     if (isActive(c) && !c.jobId) c.status = "ready";
   });
   $("cards").innerHTML = "";
@@ -840,7 +832,7 @@ function restoreSession() {
   });
 }
 
-// leaving is only risky for work that can't be picked up again: jobs still being created, or a file being fetched to share.
+// Leaving only loses work that can't be picked up again: jobs still being created, or a file being fetched to share.
 window.addEventListener("beforeunload", (e) => {
   if (batchRunning || cardData.some((c) => c.shareState === "preparing" || (c.status === "downloading" && !c.jobId))) {
     e.preventDefault();
@@ -849,7 +841,7 @@ window.addEventListener("beforeunload", (e) => {
 });
 window.addEventListener("pagehide", flushSession);
 
-// how long a saved file stays on the server
+// How long a finished file stays on the server.
 function expiryLeft(c) {
   return c.doneAt ? Math.max(0, fileTtl * 1000 - (Date.now() - c.doneAt)) : null;
 }
@@ -908,7 +900,7 @@ function updateBatch() {
       : done ? lbl("check", t("btn.allDone"))
         : lbl("download", t("btn.dlAll"));
 
-  // Chrome and Brave ask once before letting a page save several files in a row: say so before it happens
+  // Chrome and Brave ask once before saving several files in a row: warn before it happens.
   const hint = $("batch-hint");
   hint.textContent = t("batch.multiHint");
   hint.hidden = !(ready > 1 && !busy && !done && !fetching);
@@ -992,7 +984,7 @@ function watchCard(idx) {
     Object.assign(c, { status: data.status, progress: data.progress, speed: data.speed, eta: data.eta, error: data.error, filename: data.filename });
     if (data.status === "done") {
       c.doneAt = Date.now();
-      if (c.intent === "share") c.shareState = "preparing"; // set before drawing so the page doesn't look idle for a moment
+      if (c.intent === "share") c.shareState = "preparing"; // before drawing, so the card never looks idle
     }
     renderCard(idx);
     if (["done", "error", "cancelled"].includes(data.status)) {
@@ -1124,19 +1116,19 @@ async function retryFailed() {
   updateBatch();
 }
 
-// some sites return a 4:3 thumbnail with black bars baked in. Detect that shape and zoom past the bars.
+// Some sites return a 4:3 thumbnail with black bars baked in: detect that shape and zoom past the bars.
 document.addEventListener("load", (e) => {
   const img = e.target;
   if (!(img instanceof HTMLImageElement) || !img.closest(".card-thumb")) return;
   const ratio = img.naturalWidth / img.naturalHeight;
-  if (ratio >= 1.5 || ratio < 1.1) return; // only 4:3-ish shots have baked-in bars; posters and squares stay as they are
+  if (ratio >= 1.5 || ratio < 1.1) return; // only 4:3-ish shots have bars; posters and squares are left alone
   const idx = Number(img.closest(".card")?.id.replace("card-", ""));
   if (cardData[idx]?.kind === "image") return; // photos are shown as they are
   img.classList.add("boxed");
   if (cardData[idx]) cardData[idx].boxed = true;
 }, true);
 
-// switching language re-renders everything that was built from text: cards, batch bar, note, button label.
+// Switching language re-renders everything built from text: cards, batch bar, note, button label.
 function changeLang(next) {
   if (!I18N.setLang(next)) return;
   $("form-error").hidden = true;
@@ -1151,7 +1143,7 @@ I18N.init();
 loadConfig();
 restoreSession();
 
-// friendlier input: clear the hint once typing resumes; focus the box on desktop (not phones, to avoid the keyboard).
+// Clear stale messages once typing resumes; focus the box on desktop only (not phones: it opens the keyboard).
 $("urls").addEventListener("input", () => {
   $("form-error").hidden = true;
   refreshHint();
@@ -1160,6 +1152,6 @@ $("urls").addEventListener("input", () => {
 });
 if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) $("urls").focus();
 
-// say so when the connection drops, and clear the message when it comes back.
+// Warn when the connection drops; clear the message when it comes back.
 window.addEventListener("offline", () => showFormError(t("err.offlineKeep")));
 window.addEventListener("online", () => { $("form-error").hidden = true; });

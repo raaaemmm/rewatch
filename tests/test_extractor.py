@@ -83,9 +83,10 @@ def test_no_runtime_reports_problem_and_warns(monkeypatch):
 
 
 def test_base_opts_pass_runtime_to_ytdlp(monkeypatch):
+    from yt_dlp import YoutubeDL
+
     from app.config import Settings
     from app.services import extractor
-    from yt_dlp import YoutubeDL
 
     monkeypatch.setattr(extractor, "js_runtimes", lambda s=None: {"deno": {"path": "/x/deno"}})
     opts = extractor._base_opts(Settings())

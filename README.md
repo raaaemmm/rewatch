@@ -369,8 +369,10 @@ app/
                      platforms.py (site detection), jobs.py (queue + store), cleanup.py
 static/              index.html, js/ (app.js, i18n.js), css/, fonts/, icons/, platforms/
 tests/               pytest suite
+docs/                Postman collection and environment for the API
 start_server.py      launcher for running without Docker
 Dockerfile, docker-compose.yml, docker-entrypoint.sh
+pyproject.toml       ruff and pytest settings
 ```
 
 <br>
@@ -384,6 +386,13 @@ python -m pytest -q
 
 The suite has 79 tests. The download tests need ffmpeg and are skipped if it isn't
 installed.
+
+Lint with [ruff](https://docs.astral.sh/ruff/) (settings are in `pyproject.toml`):
+
+```bash
+pip install ruff
+ruff check .
+```
 
 <br>
 

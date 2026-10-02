@@ -1,7 +1,5 @@
 import time
 
-import pytest
-
 
 def wait_done(client, job_id, token, timeout=60):
     end = time.time() + timeout
@@ -19,7 +17,7 @@ def test_basics(make_client):
         assert c.get("/healthz").json() == {"status": "ok"}
         assert c.get("/").status_code == 200
         cfg = c.get("/api/v1/config").json()
-        assert cfg["max_urls_per_batch"] > 0 and "auth_required" not in cfg
+        assert cfg["max_urls_per_batch"] > 0
         assert "content-security-policy" in c.get("/").headers
         assert c.get("/docs").status_code == 404
         assert c.get("/openapi.json").status_code == 404

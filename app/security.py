@@ -22,7 +22,7 @@ class UnsafeURL(ValueError):
 
 
 # --------------------------------------------------------------------------
-# URL validation (fixes: option injection + SSRF)
+# URL validation (blocks option injection and SSRF)
 # --------------------------------------------------------------------------
 def _is_public_ip(raw: str) -> bool:
     ip = ipaddress.ip_address(raw.split("%")[0])
@@ -102,7 +102,7 @@ def verify_job_token(job_id: str, token: str | None, settings: Settings) -> bool
 
 
 # --------------------------------------------------------------------------
-# Rate limiting (fixes: no rate limiting)
+# Rate limiting (per client IP)
 # --------------------------------------------------------------------------
 def client_ip(request: Request, settings: Settings) -> str:
     if settings.trust_proxy_headers:

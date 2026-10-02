@@ -1,4 +1,4 @@
-"""Periodic expiry of finished jobs and their files (fixes: unbounded disk/memory growth)."""
+"""Periodic expiry of finished jobs and their files, so disk and memory stay bounded."""
 
 from __future__ import annotations
 

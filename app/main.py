@@ -16,8 +16,8 @@ from .routers import jobs as jobs_router
 from .routers import media as media_router
 from .schemas import ConfigResponse
 from .services import platforms
-from .services.extractor import youtube_prereq_problems
 from .services.cleanup import cleanup_loop, wipe_orphans
+from .services.extractor import youtube_prereq_problems
 from .services.jobs import JobManager, JobStore
 
 logging.basicConfig(

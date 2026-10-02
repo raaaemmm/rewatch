@@ -124,7 +124,6 @@ PLATFORMS: tuple[Platform, ...] = (
     Platform("hongguo", "Hongguo", ("hongguoduanju.com",), "#D4380D", icon=False),
 )
 
-_BY_KEY = {p.key: p for p in PLATFORMS}
 _GENERIC_COLOR = "#3a473f"
 _EXTRACTOR_SKIP = {"", "generic", "genericgeneric"}
 
@@ -186,7 +185,3 @@ def catalog() -> list[PlatformEntry]:
     return [
         PlatformEntry(**_info(p).model_dump(), hosts=list(p.hosts)) for p in PLATFORMS
     ]
-
-
-def get(key: str) -> Platform | None:
-    return _BY_KEY.get(key)

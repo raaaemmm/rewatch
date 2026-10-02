@@ -11,7 +11,6 @@
   --paper-dim: #a9b3ac;
   --accent: #6fa88f;
   --accent-strong: #8fc4ab;
-  --clay: #c97b4a;
   --clay-strong: #e0996a;
 
   --tonal: rgba(111, 168, 143, 0.20);
@@ -21,7 +20,6 @@
   --c-high: color-mix(in srgb, var(--accent) 11%, var(--card));
 
   /* surface container high */
-  --r-sm: 12px;
   --r-md: 16px;
   --r-lg: 24px;
   --r-xl: 32px;
@@ -88,10 +86,6 @@ body {
   font-weight: 700;
   font-size: clamp(28px, 6vw, 36px);
   letter-spacing: -.02em;
-}
-
-.reel {
-  color: var(--accent-strong);
 }
 
 .brand p {
@@ -443,15 +437,6 @@ textarea#urls::placeholder {
   background: var(--border-soft);
 }
 
-.skeleton-line.medium {
-  width: 70%;
-}
-
-.skeleton-line.short {
-  width: 40%;
-  margin-top: 4px;
-}
-
 .card-actions {
   display: flex;
   flex-wrap: wrap;
@@ -613,11 +598,6 @@ textarea#urls::placeholder {
   color: var(--clay-strong);
   background: rgba(201, 123, 74, .12);
   border-radius: var(--r-md);
-}
-
-.dl-all-bar {
-  display: flex;
-  justify-content: flex-end;
 }
 
 .dl-all-btn {
@@ -1101,7 +1081,7 @@ textarea#urls::placeholder {
   font-size: 13px;
 }
 
-/* notes and errors can run to several lines: let them wrap with even padding, and show a spinner while a playlist is being read */
+/* Notes and errors can wrap onto several lines; a spinner shows while a playlist is read. */
 .detect,
 .banner-error {
   gap: 10px;
@@ -1622,7 +1602,7 @@ html[lang="km"] .card-title {
   line-height: 1;
 }
 
-/* many sites pasted at once: logos only, so the row stays on one or two lines instead of pushing the field down */
+/* Many sites pasted at once: logos only, so the row stays short. */
 .plat-row.compact {
   gap: 6px;
 }
@@ -1723,4 +1703,11 @@ html.no-pull body {
 
 .card-expiry.soon {
   color: var(--clay-strong);
+}
+
+/* center the expiry note on small screens; larger screens keep the default */
+@media (max-width: 599px) {
+  .card-expiry {
+    text-align: center;
+  }
 }

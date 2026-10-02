@@ -1,0 +1,13 @@
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "UP", "I"]
+ignore = [
+    "E501",  # long lines are left to the formatter
+    "B008",  # FastAPI's Depends() in argument defaults is the documented pattern
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -28,15 +28,15 @@ class Settings(BaseSettings):
     cleanup_interval_seconds: int = 60
 
     # limits
-    max_concurrent_downloads: int = 5  # worker pool size
-    max_queued_jobs: int = 80  # reject new jobs (429) beyond this
-    max_playlist_items: int = 80
-    max_urls_per_batch: int = 80  # advertised to the UI
+    max_concurrent_downloads: int = 2  # worker pool size
+    max_queued_jobs: int = 50  # reject new jobs (429) beyond this
+    max_playlist_items: int = 50
+    max_urls_per_batch: int = 25  # advertised to the UI
     max_duration_seconds: int = 4 * 3600  # 0 = unlimited
     max_filesize_mb: float = 2048  # 0 = unlimited
     info_timeout_seconds: int = 60
     download_timeout_seconds: int = 1800
-    rate_limit_per_minute: int = 50  # per client IP, 0 = off
+    rate_limit_per_minute: int = 30  # per client IP, 0 = off
 
     # security
     # Signs per-job tokens. Set a fixed value so tokens survive restarts;

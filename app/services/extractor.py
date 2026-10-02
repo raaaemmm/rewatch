@@ -8,8 +8,8 @@ import os
 import re
 import shutil
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from yt_dlp import YoutubeDL
 from yt_dlp.utils import DownloadError, YoutubeDLError
@@ -69,7 +69,7 @@ def _find_binary(name: str, override: str = "") -> str | None:
 def js_runtimes(settings: Settings | None = None) -> dict[str, dict]:
     """JS runtimes yt-dlp can use to solve YouTube's challenges, as yt-dlp's
     `js_runtimes` option expects them ({name: {"path": ...}}). Empty if none found."""
-    override = getattr(settings, "deno_path", "") if settings else ""
+    override = settings.deno_path if settings else ""
     out: dict[str, dict] = {}
     for name in _RUNTIME_NAMES:
         if path := _find_binary(name, override if name == "deno" else ""):
@@ -233,7 +233,6 @@ def fetch_playlist(url: str, settings: Settings) -> PlaylistResponse:
     return PlaylistResponse(
         urls=urls[: settings.max_playlist_items],
         truncated=truncated,
-        title=str(info.get("title") or "")[:120],
     )
 
 

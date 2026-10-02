@@ -3,7 +3,14 @@ import socket
 import pytest
 
 from app.config import Settings
-from app.security import SlidingWindowLimiter, UnsafeURL, safe_filename, sign_job, validate_url, verify_job_token
+from app.security import (
+    SlidingWindowLimiter,
+    UnsafeURL,
+    safe_filename,
+    sign_job,
+    validate_url,
+    verify_job_token,
+)
 
 S = Settings(download_dir="/tmp/x")
 
