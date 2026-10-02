@@ -37,7 +37,10 @@ def test_rejects_option_injection_and_private(make_client):
         for bad in ("--exec=id", "http://127.0.0.1/", "http://169.254.169.254/latest"):
             assert c.post("/api/v1/info", json={"url": bad}).status_code == 400
             assert c.post("/api/v1/jobs", json={"url": bad}).status_code == 400
-        assert c.post("/api/v1/jobs", json={"url": "http://x.com", "format": "flac"}).status_code == 422
+        assert (
+            c.post("/api/v1/jobs", json={"url": "http://x.com", "format": "flac"}).status_code
+            == 422
+        )
 
 
 def test_rate_limit(make_client):
@@ -68,7 +71,7 @@ def test_info_video_and_audio_download(make_client, media_server):
         final = wait_done(c, job_id, token)
         assert final["status"] == "done", final
         assert final["progress"] == 100 and final["filename"] == "My clip1.mp4"
-        assert "file" not in final and "path" not in str(final)     # no server paths leaked
+        assert "file" not in final and "path" not in str(final)  # no server paths leaked
         f = c.get(f"/api/v1/jobs/{job_id}/file", params={"token": token})
         assert f.status_code == 200 and f.content[4:8] == b"ftyp"
         assert "attachment" in f.headers["content-disposition"]
@@ -85,11 +88,16 @@ def test_info_video_and_audio_download(make_client, media_server):
         final = wait_done(c, j2, t2)
         assert final["status"] == "done", final
         assert final["filename"] == "Song.mp3"
-        assert c.get(f"/api/v1/jobs/{j2}/file", params={"token": t2}).content[:3] in (b"ID3", b"\xff\xfb", b"\xff\xf3")
+        assert c.get(f"/api/v1/jobs/{j2}/file", params={"token": t2}).content[:3] in (
+            b"ID3",
+            b"\xff\xfb",
+            b"\xff\xf3",
+        )
 
 
 def test_cleanup_expires_files(make_client, media_server):
     from app.services.cleanup import sweep
+
     with make_client(allow_private_urls="true", file_ttl_seconds=1) as c:
         r = c.post("/api/v1/jobs", json={"url": f"{media_server}/clip.mp4"}).json()
         wait_done(c, r["job_id"], r["token"])
@@ -132,6 +140,11 @@ def test_cancel_queued_job(make_client, media_server):
         url = f"{media_server}/clip.mp4"
         first = c.post("/api/v1/jobs", json={"url": url}).json()
         second = c.post("/api/v1/jobs", json={"url": url}).json()
-        assert c.delete(f"/api/v1/jobs/{second['job_id']}", params={"token": second["token"]}).status_code == 204
+        assert (
+            c.delete(
+                f"/api/v1/jobs/{second['job_id']}", params={"token": second["token"]}
+            ).status_code
+            == 204
+        )
         wait_done(c, first["job_id"], first["token"])
         assert wait_done(c, second["job_id"], second["token"])["status"] in ("cancelled", "done")

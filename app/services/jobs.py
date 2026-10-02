@@ -123,9 +123,7 @@ class JobManager:
 
     # ---- worker ----------------------------------------------------------
     def _finish(self, job_id: str, **fields) -> None:
-        self.store.update(
-            job_id, finished_at=time.time(), speed=None, eta=None, **fields
-        )
+        self.store.update(job_id, finished_at=time.time(), speed=None, eta=None, **fields)
 
     def _run(self, job_id: str) -> None:
         try:
@@ -181,9 +179,7 @@ class JobManager:
             self._finish(job_id, status=JobStatus.error.value, error=str(exc)[:300])
         except Exception:  # noqa: BLE001
             log.exception("Unexpected error in job %s", job_id)
-            self._finish(
-                job_id, status=JobStatus.error.value, error="Unexpected server error"
-            )
+            self._finish(job_id, status=JobStatus.error.value, error="Unexpected server error")
         finally:
             with self._lock:
                 self._pending -= 1

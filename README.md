@@ -12,10 +12,10 @@ A self-hosted downloader for YouTube, TikTok, Instagram, X, Reddit and 1000+ mor
 <br>
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.121-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.142-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![yt-dlp](https://img.shields.io/badge/powered%20by-yt--dlp-8FC4AB)](https://github.com/yt-dlp/yt-dlp)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](#-quick-start)
-[![Tests](https://img.shields.io/badge/tests-79%20passing-3FB68B)](#-tests)
+[![CI](https://github.com/raaaemmm/rewatch/actions/workflows/ci.yml/badge.svg)](https://github.com/raaaemmm/rewatch/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
 [Quick start](#-quick-start) · [Features](#-features) · [Configuration](#-configuration) · [Sharing](#-share-it-with-a-cloudflare-tunnel) · [API](#-api) · [Security](#-security)
@@ -130,6 +130,12 @@ Reloading the page re-attaches to downloads that are still running. While someth
 
 ## 🚀 Quick start
 
+> [!WARNING]
+> Rewatch has **no login**. Anyone who can reach the port can use your server's bandwidth
+> and disk to download media. Keep it on `127.0.0.1` or a trusted home network. Do not
+> expose it directly to the internet. If you share it, put it behind Cloudflare Access,
+> a VPN or a reverse proxy with authentication.
+
 ### Option A: Python
 
 You need Python 3.10+, **ffmpeg** on your PATH, and **Deno** on your PATH for full YouTube
@@ -146,14 +152,14 @@ cp .env.example .env              # Windows: copy .env.example .env
 python start_server.py
 ```
 
-Open **http://localhost:8000**. The script also prints your LAN address so you can open
-Rewatch from your phone.
+Open **http://localhost:8000**. By default Rewatch listens on this machine only. Use
+`--host 0.0.0.0` to open it from your phone on the same network.
 
 ```bash
 python start_server.py --port 9000       # different port
 python start_server.py --reload          # restart on code changes (development)
 python start_server.py --tunnel          # also start a Cloudflare quick tunnel
-python start_server.py --host 127.0.0.1  # this machine only
+python start_server.py --host 0.0.0.0    # reachable on your LAN (see the warning below)
 ```
 
 On startup it checks for ffmpeg (and exits if it's missing), warns if Deno or the secret
@@ -188,12 +194,17 @@ cp .env.example .env              # then set REWATCH_SECRET_KEY
 docker compose up --build         # later runs: docker compose up -d
 ```
 
+On every start the container updates yt-dlp and gallery-dl, because sites change often
+(set `REWATCH_SKIP_YTDLP_UPDATE=true` to turn this off and run only the versions baked
+into the image).
+
 Open **http://localhost:8000**. The image already contains ffmpeg and Deno, and
 `docker compose up` refuses to start until `REWATCH_SECRET_KEY` is set.
 
-The compose file publishes the port on all interfaces, runs the container with
+The compose file publishes the port on `127.0.0.1` only, runs the container with
 `no-new-privileges` and all capabilities dropped, and caps it at 2 GB RAM and 2 CPUs.
-To reach it from this machine only, change the port mapping to `"127.0.0.1:8000:8000"`.
+To reach it from your LAN, change the port mapping to `"8000:8000"`, and read the
+warning below first.
 
 <br>
 
@@ -211,10 +222,10 @@ This prints a `https://...trycloudflare.com` address.
 > named tunnel with **Cloudflare Access** (the free tier supports email one-time PINs)
 > instead of relying on the address staying secret.
 
-- Because the app also listens on your LAN, `REWATCH_TRUST_PROXY_HEADERS` is `false` by
-  default, so all tunnel visitors share one rate-limit bucket. If you bind to `127.0.0.1`
-  and reach the app only through cloudflared, set it to `true` so the limiter uses
-  `CF-Connecting-IP`.
+- `REWATCH_TRUST_PROXY_HEADERS` is `false` by default, so all tunnel visitors share one
+  rate-limit bucket. If the app listens on `127.0.0.1` only and you reach it through
+  cloudflared, set it to `true` so the limiter uses `CF-Connecting-IP`. Never turn it on
+  while the port is reachable from your LAN or the internet.
 - Cloudflare's free proxy closes idle connections after about 100 s. The progress stream
   sends a keep-alive every ~15 s, and the page falls back to polling if it drops.
 
@@ -250,7 +261,7 @@ Set environment variables that start with `REWATCH_`, either in `.env` or in you
 | Variable | Default | What it does |
 |---|---|---|
 | `REWATCH_MAX_CONCURRENT_DOWNLOADS` | `2` | Parallel downloads. |
-| `REWATCH_MAX_QUEUED_JOBS` | `50` | Reject new jobs beyond this (HTTP 429). |
+| `REWATCH_MAX_QUEUED_JOBS` | `50` | Reject new jobs once this many are running or waiting (HTTP 429). |
 | `REWATCH_MAX_PLAYLIST_ITEMS` | `50` | Most videos taken from one playlist link. |
 | `REWATCH_MAX_URLS_PER_BATCH` | `25` | Most links accepted at once (shown in the page). |
 | `REWATCH_MAX_DURATION_SECONDS` | `14400` | Reject media longer than this (0 = off). |
@@ -274,11 +285,16 @@ Set environment variables that start with `REWATCH_`, either in `.env` or in you
 | `REWATCH_STATIC_DIR` | `./static` | Folder with the web page. Leave it unless you moved it. |
 | `REWATCH_ALLOW_PRIVATE_URLS` | `false` | Allow URLs that resolve to private or loopback addresses. Leave this off. |
 | `REWATCH_DENO_PATH` | *(auto)* | Full path to Deno if it's installed somewhere unusual. |
+| `REWATCH_SKIP_YTDLP_UPDATE` | `false` | Docker only. Set to `true` to stop the container updating yt-dlp and gallery-dl each time it starts. |
 
 </details>
 
 With Docker, `docker-compose.yml` passes these through from `.env` (except the download
 and static folders).
+
+> [!NOTE]
+> Disk use can reach roughly `REWATCH_MAX_QUEUED_JOBS` × `REWATCH_MAX_FILESIZE_MB` in the
+> worst case. On a small server, lower both.
 
 > [!NOTE]
 > Jobs are held in memory, so Rewatch runs a **single worker**. Don't start it with
@@ -373,6 +389,8 @@ docs/                Postman collection and environment for the API
 start_server.py      launcher for running without Docker
 Dockerfile, docker-compose.yml, docker-entrypoint.sh
 pyproject.toml       ruff and pytest settings
+requirements*.txt    runtime and development dependencies
+.github/             CI workflow, Dependabot, issue and PR templates
 ```
 
 <br>
@@ -380,18 +398,18 @@ pyproject.toml       ruff and pytest settings
 ## 🧪 Tests
 
 ```bash
-pip install -r requirements.txt pytest httpx
+pip install -r requirements-dev.txt
 python -m pytest -q
 ```
 
-The suite has 79 tests. The download tests need ffmpeg and are skipped if it isn't
+The suite has 79 tests, and CI runs them on Python 3.10 to 3.13. The download tests need ffmpeg and are skipped if it isn't
 installed.
 
 Lint with [ruff](https://docs.astral.sh/ruff/) (settings are in `pyproject.toml`):
 
 ```bash
-pip install ruff
 ruff check .
+ruff format --check .
 ```
 
 <br>
@@ -411,12 +429,20 @@ ruff check .
 
 <br>
 
+## 🤝 Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). To report a vulnerability, follow [SECURITY.md](SECURITY.md)
+instead of opening a public issue.
+
+<br>
+
 ## ⚖️ Legal
 
-Downloading media you don't hold the rights to may violate a platform's terms of service
+Rewatch is not affiliated with or endorsed by YouTube, TikTok, Instagram or any other site
+it can read. Downloading media you don't hold the rights to may violate a platform's terms of service
 or copyright law where you live. That's up to whoever runs the instance.
 
-Released under the MIT license, see [LICENSE](LICENSE).
+Released under the MIT license, see [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 <div align="center">
 <br>

@@ -1,4 +1,5 @@
 """Site detection: logo + name for the link a visitor pastes."""
+
 import re
 from pathlib import Path
 
@@ -33,7 +34,11 @@ def test_detects_by_host(url, key, name):
 
 
 def test_lookalike_hosts_do_not_match():
-    for url in ("https://notyoutube.com/x", "https://youtube.com.evil.example/x", "https://evil.example/?u=youtube.com"):
+    for url in (
+        "https://notyoutube.com/x",
+        "https://youtube.com.evil.example/x",
+        "https://evil.example/?u=youtube.com",
+    ):
         assert platforms.detect(url).key == "other", url
 
 
@@ -41,10 +46,15 @@ def test_unknown_site_uses_its_domain_or_extractor_name():
     p = platforms.detect("https://www.example-videos.org/v/1")
     assert (p.key, p.name, p.icon) == ("other", "example-videos.org", "")
     # a site yt-dlp knows but we don't list: its own display name
-    p = platforms.detect("https://peertube.example/w/1", extractor_key="PeerTube", extractor="PeerTube")
+    p = platforms.detect(
+        "https://peertube.example/w/1", extractor_key="PeerTube", extractor="PeerTube"
+    )
     assert (p.key, p.name) == ("other", "PeerTube")
     # a custom domain served by a known extractor is still recognised
-    assert platforms.detect("https://video.mycompany.example/v", extractor_key="VimeoOnDemand").key == "vimeo"
+    assert (
+        platforms.detect("https://video.mycompany.example/v", extractor_key="VimeoOnDemand").key
+        == "vimeo"
+    )
     assert platforms.detect("") is None
 
 
@@ -77,12 +87,23 @@ def test_info_reports_platform(monkeypatch):
 
     class FakeYDL:
         def __init__(self, opts): ...
-        def __enter__(self): return self
-        def __exit__(self, *a): return False
-        def sanitize_info(self, i): return i
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def sanitize_info(self, i):
+            return i
+
         def extract_info(self, url, download=False):
-            return {"title": "t", "formats": [], "extractor_key": "FacebookReel", "extractor": "facebook:reel",
-                    "webpage_url": "https://www.facebook.com/reel/1"}
+            return {
+                "title": "t",
+                "formats": [],
+                "extractor_key": "FacebookReel",
+                "extractor": "facebook:reel",
+                "webpage_url": "https://www.facebook.com/reel/1",
+            }
 
     monkeypatch.setattr(extractor, "YoutubeDL", FakeYDL)
     info = extractor.fetch_info("https://fb.watch/abc/", Settings())
@@ -104,4 +125,4 @@ def test_page_has_site_row_and_helpers():
     assert 'id="sites"' in index
     assert "detectPlatform" in app and "platformBadge" in app
     # attribute values must be quote-safe: esc() is used inside "..." attributes
-    assert '&quot;' in app
+    assert "&quot;" in app

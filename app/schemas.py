@@ -61,9 +61,7 @@ class JobRequest(BaseModel):
     url: str = Field(..., min_length=1, max_length=2048)
     format: Literal["video", "audio"] = "video"
     height: int | None = Field(default=None, ge=64, le=8640)
-    audio_bitrate: int | None = (
-        None  # kbps; must be one of AUDIO_BITRATES, else server default
-    )
+    audio_bitrate: int | None = None  # kbps; must be one of AUDIO_BITRATES, else server default
     title: str = Field(default="", max_length=300)
 
 

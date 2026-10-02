@@ -1,4 +1,5 @@
 """Keep the English and Khmer dictionaries in step, and make sure every key the page uses exists."""
+
 import re
 from pathlib import Path
 
@@ -20,7 +21,7 @@ EN, KM = section("en"), section("km")
 
 
 def test_same_keys_in_both_languages():
-    assert set(EN) == set(KM), (set(EN) ^ set(KM))
+    assert set(EN) == set(KM), set(EN) ^ set(KM)
 
 
 def test_no_empty_translations():
@@ -30,7 +31,9 @@ def test_no_empty_translations():
 
 def test_placeholders_match():
     for key, en in EN.items():
-        assert sorted(re.findall(r"\{(\w+)\}", en)) == sorted(re.findall(r"\{(\w+)\}", KM[key])), key
+        assert sorted(re.findall(r"\{(\w+)\}", en)) == sorted(re.findall(r"\{(\w+)\}", KM[key])), (
+            key
+        )
 
 
 def test_khmer_is_really_khmer():

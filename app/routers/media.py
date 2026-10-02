@@ -28,13 +28,9 @@ async def _run(fn, raw_url: str, settings: Settings, timeout: float):
 
 @router.post("/info", response_model=InfoResponse)
 async def info(body: UrlRequest, settings: Settings = Depends(get_settings)):
-    return await _run(
-        extractor.fetch_info, body.url, settings, settings.info_timeout_seconds
-    )
+    return await _run(extractor.fetch_info, body.url, settings, settings.info_timeout_seconds)
 
 
 @router.post("/playlist", response_model=PlaylistResponse)
 async def playlist(body: UrlRequest, settings: Settings = Depends(get_settings)):
-    return await _run(
-        extractor.fetch_playlist, body.url, settings, settings.info_timeout_seconds
-    )
+    return await _run(extractor.fetch_playlist, body.url, settings, settings.info_timeout_seconds)

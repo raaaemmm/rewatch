@@ -15,9 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="REWATCH_", env_file=".env", extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_prefix="REWATCH_", env_file=".env", extra="ignore")
 
     # server
     download_dir: Path = BASE_DIR / "downloads"

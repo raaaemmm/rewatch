@@ -2,9 +2,7 @@ from app.services import slideshow as sl
 
 
 def test_photo_url_detection_ignores_query():
-    assert sl.is_photo_post(
-        "https://www.tiktok.com/@a.b/photo/765?is_from_webapp=1&x=2"
-    )
+    assert sl.is_photo_post("https://www.tiktok.com/@a.b/photo/765?is_from_webapp=1&x=2")
     assert not sl.is_photo_post("https://www.tiktok.com/@a.b/video/765")
     assert not sl.is_photo_post("https://example.com/@a/photo/1")
 
@@ -34,10 +32,7 @@ def test_video_cmd_has_one_input_per_image_plus_looped_audio(tmp_path):
 def test_image_index_and_extension():
     assert sl.image_index("https://www.tiktok.com/@a/photo/1#image=3") == 3
     assert sl.image_index("https://www.tiktok.com/@a/photo/1") is None
-    assert (
-        sl._image_ext("https://x.tiktokcdn.com/a~tplv-photomode-image.jpeg?x=1")
-        == ".jpg"
-    )
+    assert sl._image_ext("https://x.tiktokcdn.com/a~tplv-photomode-image.jpeg?x=1") == ".jpg"
     assert sl._image_ext("https://x.tiktokcdn.com/a.webp?x=1") == ".webp"
     assert sl._image_ext("https://x.tiktokcdn.com/a?x=1") == ".jpg"
 
@@ -47,12 +42,8 @@ def test_photo_entries_lists_every_photo(monkeypatch):
 
     imgs = [f"https://p16.tiktokcdn.com/{i}.jpeg" for i in range(3)]
     monkeypatch.setattr(sl, "list_media", lambda u, s: (imgs, None))
-    res = sl.photo_entries(
-        "https://www.tiktok.com/@u.v/photo/99?is_from_webapp=1", Settings()
-    )
-    assert res.urls == [
-        f"https://www.tiktok.com/@u.v/photo/99#image={i}" for i in (1, 2, 3)
-    ]
+    res = sl.photo_entries("https://www.tiktok.com/@u.v/photo/99?is_from_webapp=1", Settings())
+    assert res.urls == [f"https://www.tiktok.com/@u.v/photo/99#image={i}" for i in (1, 2, 3)]
     assert res.photos[1].title == "@u.v photo 2 of 3"
     assert res.photos[1].thumbnail == imgs[1]
 
@@ -83,9 +74,7 @@ def test_single_photo_download_keeps_original_image(monkeypatch, tmp_path):
         on_update=lambda d: None,
         is_cancelled=lambda: False,
     )
-    assert (
-        fetched == [imgs[1]] and path.suffix == ".jpg" and name == "@u photo 2 of 2.jpg"
-    )
+    assert fetched == [imgs[1]] and path.suffix == ".jpg" and name == "@u photo 2 of 2.jpg"
 
 
 def test_app_share_links_resolve_to_photo_posts(monkeypatch):
@@ -97,10 +86,7 @@ def test_app_share_links_resolve_to_photo_posts(monkeypatch):
     # a short link to a normal video is left for yt-dlp
     sl._resolved.clear()
     monkeypatch.setattr(sl, "_follow", lambda u: "https://www.tiktok.com/@u/video/5")
-    assert (
-        sl.resolve_photo("https://vt.tiktok.com/ZSxyz/")
-        == "https://vt.tiktok.com/ZSxyz/"
-    )
+    assert sl.resolve_photo("https://vt.tiktok.com/ZSxyz/") == "https://vt.tiktok.com/ZSxyz/"
     # unrelated hosts never trigger a request
     monkeypatch.setattr(sl, "_follow", lambda u: (_ for _ in ()).throw(AssertionError))
     assert sl.resolve_photo("https://example.com/t/abc") == "https://example.com/t/abc"

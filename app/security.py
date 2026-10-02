@@ -33,8 +33,7 @@ def _is_public_ip(raw: str) -> bool:
 
 def _host_allowed(host: str, allowed: list[str]) -> bool:
     return any(
-        host == a or host.endswith("." + a)
-        for a in (h.lower().lstrip(".") for h in allowed)
+        host == a or host.endswith("." + a) for a in (h.lower().lstrip(".") for h in allowed)
     )
 
 
@@ -92,9 +91,7 @@ def safe_filename(title: str, fallback: str, ext: str) -> str:
 # Per-job tokens
 # --------------------------------------------------------------------------
 def sign_job(job_id: str, settings: Settings) -> str:
-    return hmac.new(settings.secret_key.encode(), job_id.encode(), sha256).hexdigest()[
-        :32
-    ]
+    return hmac.new(settings.secret_key.encode(), job_id.encode(), sha256).hexdigest()[:32]
 
 
 def verify_job_token(job_id: str, token: str | None, settings: Settings) -> bool:
@@ -127,11 +124,7 @@ class SlidingWindowLimiter:
         now = time.monotonic()
         with self._lock:
             if now - self._last_sweep > self.window:  # drop idle keys
-                for k in [
-                    k
-                    for k, q in self._hits.items()
-                    if not q or now - q[-1] > self.window
-                ]:
+                for k in [k for k, q in self._hits.items() if not q or now - q[-1] > self.window]:
                     del self._hits[k]
                 self._last_sweep = now
             q = self._hits[key]
@@ -146,14 +139,10 @@ class SlidingWindowLimiter:
 limiter = SlidingWindowLimiter()
 
 
-async def rate_limit(
-    request: Request, settings: Settings = Depends(get_settings)
-) -> None:
+async def rate_limit(request: Request, settings: Settings = Depends(get_settings)) -> None:
     if settings.rate_limit_per_minute <= 0:
         return
-    ok, retry = limiter.allow(
-        client_ip(request, settings), settings.rate_limit_per_minute
-    )
+    ok, retry = limiter.allow(client_ip(request, settings), settings.rate_limit_per_minute)
     if not ok:
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,

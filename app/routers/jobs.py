@@ -98,9 +98,7 @@ async def job_events(
                 yield f"data: {payload}\n\n"
             else:
                 quiet += 1
-                if (
-                    quiet >= 30
-                ):  # ~15 s: keep proxies (Cloudflare) from closing the stream
+                if quiet >= 30:  # ~15 s: keep proxies (Cloudflare) from closing the stream
                     quiet = 0
                     yield ": ping\n\n"
             if view.status.terminal:

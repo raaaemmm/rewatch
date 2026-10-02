@@ -19,7 +19,9 @@ def make_client(tmp_path, monkeypatch):
             monkeypatch.setenv(f"REWATCH_{k.upper()}", str(v))
         get_settings.cache_clear()
         from app.main import create_app
+
         return TestClient(create_app())
+
     yield _make
     get_settings.cache_clear()
 
@@ -31,9 +33,27 @@ def media_server(tmp_path_factory):
         pytest.skip("ffmpeg not installed")
     root = tmp_path_factory.mktemp("media")
     subprocess.run(
-        ["ffmpeg", "-loglevel", "error", "-f", "lavfi", "-i", "testsrc=size=320x240:rate=15:duration=2",
-         "-f", "lavfi", "-i", "sine=frequency=440:duration=2", "-c:v", "libx264", "-c:a", "aac",
-         "-shortest", str(root / "clip.mp4")], check=True)
+        [
+            "ffmpeg",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "testsrc=size=320x240:rate=15:duration=2",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=440:duration=2",
+            "-c:v",
+            "libx264",
+            "-c:a",
+            "aac",
+            "-shortest",
+            str(root / "clip.mp4"),
+        ],
+        check=True,
+    )
     handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(root))
     handler.log_message = lambda *a, **k: None
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)

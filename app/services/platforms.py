@@ -78,14 +78,10 @@ PLATFORMS: tuple[Platform, ...] = (
         ("soundcloud",),
     ),
     Platform("loom", "Loom", ("loom.com",), "#625DF5", ("loom",)),
-    Platform(
-        "pinterest", "Pinterest", ("pinterest.com", "pin.it"), "#BD081C", ("pinterest",)
-    ),
+    Platform("pinterest", "Pinterest", ("pinterest.com", "pin.it"), "#BD081C", ("pinterest",)),
     Platform("tumblr", "Tumblr", ("tumblr.com",), "#36465D", ("tumblr",)),
     Platform("threads", "Threads", ("threads.net", "threads.com"), _DARK, ("threads",)),
-    Platform(
-        "bilibili", "Bilibili", ("bilibili.com", "b23.tv"), "#00A1D6", ("bilibili",)
-    ),
+    Platform("bilibili", "Bilibili", ("bilibili.com", "b23.tv"), "#00A1D6", ("bilibili",)),
     Platform("telegram", "Telegram", ("t.me", "telegram.me"), "#26A5E4", ("telegram",)),
     Platform("bandcamp", "Bandcamp", ("bandcamp.com",), "#1DA0C3", ("bandcamp",)),
     Platform("vk", "VK", ("vk.com", "vk.ru", "vkvideo.ru"), "#0077FF", ("vk",)),
@@ -169,9 +165,7 @@ def detect(
         # a site yt-dlp knows but we have no logo for: use its own display name
         name = (extractor or extractor_key or "").strip()
         if name:
-            return PlatformInfo(
-                key="other", name=name[:40], color=_GENERIC_COLOR, icon=""
-            )
+            return PlatformInfo(key="other", name=name[:40], color=_GENERIC_COLOR, icon="")
 
     if host:
         return PlatformInfo(
@@ -182,6 +176,4 @@ def detect(
 
 def catalog() -> list[PlatformEntry]:
     """Everything the page needs to recognise a site the moment a link is pasted."""
-    return [
-        PlatformEntry(**_info(p).model_dump(), hosts=list(p.hosts)) for p in PLATFORMS
-    ]
+    return [PlatformEntry(**_info(p).model_dump(), hosts=list(p.hosts)) for p in PLATFORMS]

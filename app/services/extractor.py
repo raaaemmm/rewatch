@@ -109,8 +109,6 @@ def _base_opts(settings: Settings) -> dict:
     }
     if runtimes := js_runtimes(settings):
         opts["js_runtimes"] = runtimes  # explicit paths: works even when PATH is stale
-    if importlib.util.find_spec("yt_dlp_ejs") is None:
-        opts["remote_components"] = ["ejs:github"]  # let yt-dlp fetch the solver itself
     return opts
 
 
@@ -147,9 +145,7 @@ def fetch_info(url: str, settings: Settings) -> InfoResponse:
         return slideshow.fetch_info(url, settings)
     try:
         with YoutubeDL(_base_opts(settings)) as ydl:
-            info = _first_entry(
-                ydl.sanitize_info(ydl.extract_info(url, download=False))
-            )
+            info = _first_entry(ydl.sanitize_info(ydl.extract_info(url, download=False)))
     except ExtractionError:
         raise
     except YoutubeDLError as exc:
@@ -164,8 +160,7 @@ def fetch_info(url: str, settings: Settings) -> InfoResponse:
         rank = (
             (
                 1
-                if settings.prefer_compatible_codecs
-                and (f.get("vcodec") or "").startswith("avc1")
+                if settings.prefer_compatible_codecs and (f.get("vcodec") or "").startswith("avc1")
                 else 0
             ),
             f.get("tbr") or 0,
@@ -350,9 +345,7 @@ def run_download(
 
     def post_hook(d: dict) -> None:
         if d.get("status") == "started":
-            on_update(
-                {"status": "processing", "progress": 96.0, "speed": None, "eta": None}
-            )
+            on_update({"status": "processing", "progress": 96.0, "speed": None, "eta": None})
 
     opts["progress_hooks"] = [progress_hook]
     opts["postprocessor_hooks"] = [post_hook]
@@ -364,23 +357,14 @@ def run_download(
             if info.get("is_live"):
                 raise ExtractionError("Live streams are not supported")
             dur = info.get("duration")
-            if (
-                settings.max_duration_seconds
-                and dur
-                and dur > settings.max_duration_seconds
-            ):
+            if settings.max_duration_seconds and dur and dur > settings.max_duration_seconds:
                 raise ExtractionError(
                     f"Media is longer than {settings.max_duration_seconds // 3600}h limit"
                 )
             req = info.get("requested_formats") or [info]
             state["streams"] = len(req)
-            size = sum(
-                (f.get("filesize") or f.get("filesize_approx") or 0) for f in req
-            )
-            if (
-                settings.max_filesize_mb
-                and size > settings.max_filesize_mb * 1024 * 1024
-            ):
+            size = sum((f.get("filesize") or f.get("filesize_approx") or 0) for f in req)
+            if settings.max_filesize_mb and size > settings.max_filesize_mb * 1024 * 1024:
                 raise ExtractionError(
                     f"File is larger than the {settings.max_filesize_mb} MB limit"
                 )
@@ -401,9 +385,7 @@ def run_download(
         _remove_job_files(out_dir, job_id)
         raise
 
-    files = [
-        p for p in out_dir.glob(f"{job_id}.*") if p.suffix not in (".part", ".ytdl")
-    ]
+    files = [p for p in out_dir.glob(f"{job_id}.*") if p.suffix not in (".part", ".ytdl")]
     if not files:
         raise ExtractionError("No file was produced (it may exceed the size limit)")
     chosen = next(
@@ -413,9 +395,7 @@ def run_download(
     for p in out_dir.glob(f"{job_id}.*"):
         if p != chosen:
             p.unlink(missing_ok=True)
-    return chosen, safe_filename(
-        title or info.get("title") or "", job_id, chosen.suffix
-    )
+    return chosen, safe_filename(title or info.get("title") or "", job_id, chosen.suffix)
 
 
 def _remove_job_files(out_dir: Path, job_id: str) -> None:

@@ -28,9 +28,7 @@ from .extractor import DownloadCancelled, ExtractionError, _find_binary
 
 log = logging.getLogger("rewatch.slideshow")
 
-_PHOTO_RE = re.compile(
-    r"^https?://(?:www\.|m\.)?tiktok\.com/@([^/?#]+)/photo/(\d+)", re.IGNORECASE
-)
+_PHOTO_RE = re.compile(r"^https?://(?:www\.|m\.)?tiktok\.com/@([^/?#]+)/photo/(\d+)", re.IGNORECASE)
 
 # only ever download from TikTok's own hosts (gallery-dl output is not blindly trusted).
 _CDN_SUFFIXES = ("tiktokcdn.com", "tiktokcdn-us.com", "tiktokv.com", "tiktokv.us")
@@ -126,9 +124,7 @@ def _cdn_ok(url: str) -> bool:
         host = (p.hostname or "").lower()
     except ValueError:
         return False
-    return p.scheme == "https" and any(
-        host == s or host.endswith("." + s) for s in _CDN_SUFFIXES
-    )
+    return p.scheme == "https" and any(host == s or host.endswith("." + s) for s in _CDN_SUFFIXES)
 
 
 def split_media(lines: list[str]) -> tuple[list[str], str | None]:
@@ -169,9 +165,7 @@ def list_media(url: str, settings: Settings) -> tuple[list[str], str | None]:
 def _list_media_uncached(url: str, settings: Settings) -> tuple[list[str], str | None]:
     cmd = [sys.executable, "-m", "gallery_dl", "--config-ignore", "-g", _clean_url(url)]
     try:
-        proc = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=45, check=False
-        )
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=45, check=False)
     except subprocess.TimeoutExpired as exc:
         raise ExtractionError("Timed out reading this TikTok post") from exc
     except OSError as exc:
@@ -202,9 +196,7 @@ def fetch_info(url: str, settings: Settings) -> InfoResponse:
         uploader=f"@{handle}",
         photos=n,
         platform=platforms.detect(url),
-        formats=[
-            FormatOption(height=h, label=f"{h}p", codec="h264") for h in _QUALITIES
-        ],
+        formats=[FormatOption(height=h, label=f"{h}p", codec="h264") for h in _QUALITIES],
     )
 
 
@@ -216,9 +208,7 @@ def photo_entries(url: str, settings: Settings) -> PlaylistResponse:
     n = len(images)
     urls = [f"{base}#image={i}" for i in range(1, n + 1)]
     photos = [
-        PhotoItem(
-            url=urls[i], thumbnail=images[i], title=f"@{handle} photo {i + 1} of {n}"
-        )
+        PhotoItem(url=urls[i], thumbnail=images[i], title=f"@{handle} photo {i + 1} of {n}")
         for i in range(n)
     ]
     return PlaylistResponse(urls=urls, photos=photos)
@@ -262,9 +252,7 @@ def _run_ffmpeg(
     started: float,
     is_cancelled: Callable[[], bool],
 ) -> None:
-    proc = subprocess.Popen(
-        cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True
-    )
+    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
     try:
         while proc.poll() is None:
             if is_cancelled():
@@ -354,9 +342,7 @@ def run_download(
         ext = _image_ext(src)
         out = settings.download_dir / f"{job_id}{ext}"
         try:
-            on_update(
-                {"status": "downloading", "progress": 30.0, "speed": None, "eta": None}
-            )
+            on_update({"status": "downloading", "progress": 30.0, "speed": None, "eta": None})
             _download(src, out, _MAX_IMAGE_BYTES, check)
         except BaseException:
             out.unlink(missing_ok=True)
@@ -392,9 +378,7 @@ def run_download(
                 }
             )
 
-        on_update(
-            {"status": "processing", "progress": 96.0, "speed": None, "eta": None}
-        )
+        on_update({"status": "processing", "progress": 96.0, "speed": None, "eta": None})
         audio_path = (work / "audio.bin") if audio_url else None
         if want_audio:
             bitrate = audio_bitrate or settings.audio_bitrate_kbps

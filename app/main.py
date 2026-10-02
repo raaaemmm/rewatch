@@ -20,9 +20,7 @@ from .services.cleanup import cleanup_loop, wipe_orphans
 from .services.extractor import youtube_prereq_problems
 from .services.jobs import JobManager, JobStore
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("rewatch")
 
 CSP = (
