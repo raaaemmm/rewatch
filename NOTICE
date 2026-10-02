@@ -1,0 +1,16 @@
+Rewatch
+Copyright (c) 2026 raaaemmm, released under the MIT License (see LICENSE).
+
+Rewatch is a rebuild of ReClip (https://github.com/averygan/reclip) by averygan,
+which is also released under the MIT License. ReClip's license text carries the notice
+"Copyright (c) 2026" with no holder named. If you reuse anything that originated in
+ReClip, keep this notice together with the MIT license.
+
+Third-party material bundled in this repository:
+
+- Kantumruy Pro font: SIL Open Font License 1.1, see static/fonts/OFL.txt
+- Site logos in static/platforms/: Simple Icons, CC0 1.0, see static/platforms/LICENSE-ICONS.md.
+  The logos are trademarks of their owners and only identify the site a link belongs to.
+
+Dependencies installed from PyPI (FastAPI, uvicorn, pydantic-settings, yt-dlp, gallery-dl)
+keep their own licenses.
